@@ -13,7 +13,7 @@
     "test:ui": "vitest --ui"
   },
   "keywords": [
-    "astro",
+    "1test",
     "api",
     "testing",
     "executor"

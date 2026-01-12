@@ -1,6 +1,6 @@
-# Astro Plan Executor
+# 1test Plan Executor
 
-The Astro Plan Executor takes JSON test plans (output from the test system DSL) and executes them. It can run tests locally or remotely (e.g., in a Lambda function).
+The 1test Plan Executor takes JSON test plans (output from the test system DSL) and executes them. It can run tests locally or remotely (e.g., in a Lambda function).
 
 ## Features
 
