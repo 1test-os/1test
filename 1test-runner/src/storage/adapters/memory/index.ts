@@ -37,6 +37,25 @@ export class MemoryRepositoryBackend implements RepositoryBackend {
     return fn(this);
   }
 
+  async execute<T = unknown>(
+    query: string | Function,
+    params?: unknown[],
+  ): Promise<T[]> {
+    if (typeof query !== "function") {
+      throw new Error(
+        "Memory backend execute() requires a function, not a string query",
+      );
+    }
+
+    // Pass all repositories to the query function for complex queries
+    const collections = new Map<string, any[]>();
+    for (const [name, repo] of this.repositories.entries()) {
+      collections.set(name, (repo as any).getAll());
+    }
+
+    return query(collections, params);
+  }
+
   /**
    * Clear all data (useful for testing).
    */

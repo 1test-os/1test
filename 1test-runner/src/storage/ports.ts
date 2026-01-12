@@ -184,6 +184,17 @@ export interface RepositoryBackend {
    * Optional: backends may throw "not implemented" if they don't support transactions.
    */
   transaction<R>(fn: (tx: RepositoryBackend) => Promise<R>): Promise<R>;
+
+  /**
+   * Execute a raw query for complex operations that don't fit the Repository pattern.
+   * For memory backend: accepts a filter function that operates on collections.
+   * For SQL backends: accepts SQL string with optional parameters.
+   * Returns rows as plain objects of type T.
+   */
+  execute<T = unknown>(
+    query: string | Function,
+    params?: unknown[],
+  ): Promise<T[]>;
 }
 
 /**

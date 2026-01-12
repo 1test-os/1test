@@ -58,4 +58,20 @@ export class SqliteRepositoryBackend implements RepositoryBackend {
     // TODO: Wrap in BEGIN/COMMIT/ROLLBACK
     // better-sqlite3 has: db.transaction(() => { ... })
   }
+
+  async execute<T = unknown>(
+    query: string | Function,
+    params?: unknown[],
+  ): Promise<T[]> {
+    if (typeof query === "function") {
+      throw new Error(
+        "SQLite backend execute() requires a SQL string, not a function",
+      );
+    }
+
+    // TODO: When better-sqlite3 db is properly implemented, use it to execute the query
+    // const stmt = this.db.prepare(query);
+    // return stmt.all(params) as T[];
+    throw new Error("SqliteRepositoryBackend.execute not yet implemented");
+  }
 }

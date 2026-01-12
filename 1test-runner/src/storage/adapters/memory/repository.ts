@@ -127,4 +127,11 @@ export class MemoryRepository<
   clear(): void {
     this.data.clear();
   }
+
+  /**
+   * Get all data (useful for complex queries via execute()).
+   */
+  getAll(): T[] {
+    return Array.from(this.data.values());
+  }
 }

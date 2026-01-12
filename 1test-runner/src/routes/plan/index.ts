@@ -1,4 +1,4 @@
-import { TestPlanV1Schema, type TestPlanV1 } from "../../schemas/plan.js";
+import { TestPlanV1Schema, type TestPlanV1 } from "1test-plan-executor";
 import { FastifyTypeBox } from "../../types.js";
 
 export const CreatePlanEndpoint = {

@@ -61,6 +61,22 @@ export class PostgresRepositoryBackend implements RepositoryBackend {
     // Create a transactional RepositoryBackend that uses the same client
     // Pass it to fn()
   }
+
+  async execute<T = unknown>(
+    query: string | Function,
+    params?: unknown[],
+  ): Promise<T[]> {
+    if (typeof query === "function") {
+      throw new Error(
+        "Postgres backend execute() requires a SQL string, not a function",
+      );
+    }
+
+    // TODO: When pg pool is properly implemented, use it to execute the query
+    // const result = await this.pool.query(query, params);
+    // return result.rows as T[];
+    throw new Error("PostgresRepositoryBackend.execute not yet implemented");
+  }
 }
 
 /**
