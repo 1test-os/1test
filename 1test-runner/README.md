@@ -1,50 +1,23 @@
-# 1test Runner
+# Getting Started with [Fastify-CLI](https://www.npmjs.com/package/fastify-cli)
+This project was bootstrapped with Fastify-CLI.
 
-The 1test Runner is an orchestration service responsible for scheduling and executing API tests. It ensures tests run according to their configured frequencies (e.g., every 15 minutes, every minute, etc.).
+## Available Scripts
 
-## Status
+In the project directory, you can run:
 
-🚧 **In Development** - The runner service structure is in place, but full implementation is pending.
+### `npm run dev`
 
-## Planned Features
+To start the app in dev mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-- Schedule tests based on frequency configuration
-- Execute test plans using the plan executor
-- Store execution results and logs in PostgreSQL
-- Provide REST API for CLI to deploy tests and retrieve logs
-- Support for multiple test plans with different frequencies
+### `npm start`
 
-## Architecture
+For production mode
 
-The runner will:
-1. Accept test plan deployments from the CLI
-2. Store test plans in PostgreSQL
-3. Schedule test executions using cron jobs (node-cron)
-4. Execute tests using the plan executor
-5. Store results and logs for retrieval
+### `npm run test`
 
-## Running with Docker (Coming Soon)
+Run the test cases.
 
-```bash
-docker run -it -e POSTGRESQL_URL=postgresql://some-db-instance.aws.com 1test:runner
-```
+## Learn More
 
-## Development
-
-```bash
-npm install
-npm run build
-npm run dev
-```
-
-## API Endpoints (Planned)
-
-- `POST /api/tests/deploy` - Deploy a test plan
-- `GET /api/tests/:name/logs` - Get logs for a test
-- `POST /api/tests/:name/execute` - Execute a test immediately
-- `GET /health` - Health check endpoint
-
-## Environment Variables
-
-- `POSTGRESQL_URL` - PostgreSQL connection string for storing test results and logs (required)
-- `PORT` - Server port (default: 3000)
+To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).
