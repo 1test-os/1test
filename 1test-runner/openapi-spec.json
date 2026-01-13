@@ -43,19 +43,14 @@
                   },
                   "version": {
                     "type": "string",
-                    "enum": [
-                      "1.0"
-                    ]
+                    "enum": ["1.0"]
                   },
                   "endpoint_host": {
                     "type": "string"
                   },
                   "frequency": {
                     "type": "object",
-                    "required": [
-                      "every",
-                      "unit"
-                    ],
+                    "required": ["every", "unit"],
                     "properties": {
                       "every": {
                         "type": "number"
@@ -64,21 +59,15 @@
                         "anyOf": [
                           {
                             "type": "number",
-                            "enum": [
-                              0
-                            ]
+                            "enum": [0]
                           },
                           {
                             "type": "number",
-                            "enum": [
-                              1
-                            ]
+                            "enum": [1]
                           },
                           {
                             "type": "number",
-                            "enum": [
-                              2
-                            ]
+                            "enum": [2]
                           }
                         ]
                       }
@@ -88,10 +77,7 @@
                     "type": "array",
                     "items": {
                       "type": "object",
-                      "required": [
-                        "id",
-                        "data"
-                      ],
+                      "required": ["id", "data"],
                       "properties": {
                         "id": {
                           "type": "string"
@@ -109,65 +95,45 @@
                               "properties": {
                                 "type": {
                                   "type": "number",
-                                  "enum": [
-                                    0
-                                  ]
+                                  "enum": [0]
                                 },
                                 "method": {
                                   "anyOf": [
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        0
-                                      ]
+                                      "enum": [0]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        1
-                                      ]
+                                      "enum": [1]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        2
-                                      ]
+                                      "enum": [2]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        3
-                                      ]
+                                      "enum": [3]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        4
-                                      ]
+                                      "enum": [4]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        5
-                                      ]
+                                      "enum": [5]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        6
-                                      ]
+                                      "enum": [6]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        7
-                                      ]
+                                      "enum": [7]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        8
-                                      ]
+                                      "enum": [8]
                                     }
                                   ]
                                 },
@@ -185,21 +151,15 @@
                                   "anyOf": [
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        0
-                                      ]
+                                      "enum": [0]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        1
-                                      ]
+                                      "enum": [1]
                                     },
                                     {
                                       "type": "number",
-                                      "enum": [
-                                        2
-                                      ]
+                                      "enum": [2]
                                     }
                                   ]
                                 }
@@ -207,16 +167,11 @@
                             },
                             {
                               "type": "object",
-                              "required": [
-                                "type",
-                                "duration_ms"
-                              ],
+                              "required": ["type", "duration_ms"],
                               "properties": {
                                 "type": {
                                   "type": "number",
-                                  "enum": [
-                                    1
-                                  ]
+                                  "enum": [1]
                                 },
                                 "duration_ms": {
                                   "type": "number"
@@ -225,16 +180,11 @@
                             },
                             {
                               "type": "object",
-                              "required": [
-                                "type",
-                                "assertions"
-                              ],
+                              "required": ["type", "assertions"],
                               "properties": {
                                 "type": {
                                   "type": "number",
-                                  "enum": [
-                                    2
-                                  ]
+                                  "enum": [2]
                                 },
                                 "assertions": {
                                   "type": "array",
@@ -242,10 +192,7 @@
                                     "anyOf": [
                                       {
                                         "type": "object",
-                                        "required": [
-                                          "path",
-                                          "predicate"
-                                        ],
+                                        "required": ["path", "predicate"],
                                         "properties": {
                                           "path": {
                                             "type": "array",
@@ -259,27 +206,19 @@
                                                 "anyOf": [
                                                   {
                                                     "type": "number",
-                                                    "enum": [
-                                                      0
-                                                    ]
+                                                    "enum": [0]
                                                   },
                                                   {
                                                     "type": "number",
-                                                    "enum": [
-                                                      1
-                                                    ]
+                                                    "enum": [1]
                                                   },
                                                   {
                                                     "type": "number",
-                                                    "enum": [
-                                                      2
-                                                    ]
+                                                    "enum": [2]
                                                   },
                                                   {
                                                     "type": "number",
-                                                    "enum": [
-                                                      3
-                                                    ]
+                                                    "enum": [3]
                                                   }
                                                 ]
                                               },
@@ -295,51 +234,35 @@
                                                     "anyOf": [
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          0
-                                                        ]
+                                                        "enum": [0]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          1
-                                                        ]
+                                                        "enum": [1]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          2
-                                                        ]
+                                                        "enum": [2]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          3
-                                                        ]
+                                                        "enum": [3]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          4
-                                                        ]
+                                                        "enum": [4]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          5
-                                                        ]
+                                                        "enum": [5]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          6
-                                                        ]
+                                                        "enum": [6]
                                                       },
                                                       {
                                                         "type": "number",
-                                                        "enum": [
-                                                          7
-                                                        ]
+                                                        "enum": [7]
                                                       }
                                                     ]
                                                   }
@@ -351,10 +274,7 @@
                                       },
                                       {
                                         "type": "object",
-                                        "required": [
-                                          "path",
-                                          "expected"
-                                        ],
+                                        "required": ["path", "expected"],
                                         "properties": {
                                           "path": {
                                             "type": "array",
@@ -367,10 +287,7 @@
                                       },
                                       {
                                         "type": "object",
-                                        "required": [
-                                          "path",
-                                          "expected"
-                                        ],
+                                        "required": ["path", "expected"],
                                         "properties": {
                                           "path": {
                                             "type": "string"
@@ -392,10 +309,7 @@
                     "type": "array",
                     "items": {
                       "type": "object",
-                      "required": [
-                        "from",
-                        "to"
-                      ],
+                      "required": ["from", "to"],
                       "properties": {
                         "from": {
                           "type": "string"
@@ -436,19 +350,14 @@
                     },
                     "version": {
                       "type": "string",
-                      "enum": [
-                        "1.0"
-                      ]
+                      "enum": ["1.0"]
                     },
                     "endpoint_host": {
                       "type": "string"
                     },
                     "frequency": {
                       "type": "object",
-                      "required": [
-                        "every",
-                        "unit"
-                      ],
+                      "required": ["every", "unit"],
                       "properties": {
                         "every": {
                           "type": "number"
@@ -457,21 +366,15 @@
                           "anyOf": [
                             {
                               "type": "number",
-                              "enum": [
-                                0
-                              ]
+                              "enum": [0]
                             },
                             {
                               "type": "number",
-                              "enum": [
-                                1
-                              ]
+                              "enum": [1]
                             },
                             {
                               "type": "number",
-                              "enum": [
-                                2
-                              ]
+                              "enum": [2]
                             }
                           ]
                         }
@@ -481,10 +384,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": [
-                          "id",
-                          "data"
-                        ],
+                        "required": ["id", "data"],
                         "properties": {
                           "id": {
                             "type": "string"
@@ -502,65 +402,45 @@
                                 "properties": {
                                   "type": {
                                     "type": "number",
-                                    "enum": [
-                                      0
-                                    ]
+                                    "enum": [0]
                                   },
                                   "method": {
                                     "anyOf": [
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          0
-                                        ]
+                                        "enum": [0]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          1
-                                        ]
+                                        "enum": [1]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          2
-                                        ]
+                                        "enum": [2]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          3
-                                        ]
+                                        "enum": [3]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          4
-                                        ]
+                                        "enum": [4]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          5
-                                        ]
+                                        "enum": [5]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          6
-                                        ]
+                                        "enum": [6]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          7
-                                        ]
+                                        "enum": [7]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          8
-                                        ]
+                                        "enum": [8]
                                       }
                                     ]
                                   },
@@ -578,21 +458,15 @@
                                     "anyOf": [
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          0
-                                        ]
+                                        "enum": [0]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          1
-                                        ]
+                                        "enum": [1]
                                       },
                                       {
                                         "type": "number",
-                                        "enum": [
-                                          2
-                                        ]
+                                        "enum": [2]
                                       }
                                     ]
                                   }
@@ -600,16 +474,11 @@
                               },
                               {
                                 "type": "object",
-                                "required": [
-                                  "type",
-                                  "duration_ms"
-                                ],
+                                "required": ["type", "duration_ms"],
                                 "properties": {
                                   "type": {
                                     "type": "number",
-                                    "enum": [
-                                      1
-                                    ]
+                                    "enum": [1]
                                   },
                                   "duration_ms": {
                                     "type": "number"
@@ -618,16 +487,11 @@
                               },
                               {
                                 "type": "object",
-                                "required": [
-                                  "type",
-                                  "assertions"
-                                ],
+                                "required": ["type", "assertions"],
                                 "properties": {
                                   "type": {
                                     "type": "number",
-                                    "enum": [
-                                      2
-                                    ]
+                                    "enum": [2]
                                   },
                                   "assertions": {
                                     "type": "array",
@@ -635,10 +499,7 @@
                                       "anyOf": [
                                         {
                                           "type": "object",
-                                          "required": [
-                                            "path",
-                                            "predicate"
-                                          ],
+                                          "required": ["path", "predicate"],
                                           "properties": {
                                             "path": {
                                               "type": "array",
@@ -652,27 +513,19 @@
                                                   "anyOf": [
                                                     {
                                                       "type": "number",
-                                                      "enum": [
-                                                        0
-                                                      ]
+                                                      "enum": [0]
                                                     },
                                                     {
                                                       "type": "number",
-                                                      "enum": [
-                                                        1
-                                                      ]
+                                                      "enum": [1]
                                                     },
                                                     {
                                                       "type": "number",
-                                                      "enum": [
-                                                        2
-                                                      ]
+                                                      "enum": [2]
                                                     },
                                                     {
                                                       "type": "number",
-                                                      "enum": [
-                                                        3
-                                                      ]
+                                                      "enum": [3]
                                                     }
                                                   ]
                                                 },
@@ -688,51 +541,35 @@
                                                       "anyOf": [
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            0
-                                                          ]
+                                                          "enum": [0]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            1
-                                                          ]
+                                                          "enum": [1]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            2
-                                                          ]
+                                                          "enum": [2]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            3
-                                                          ]
+                                                          "enum": [3]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            4
-                                                          ]
+                                                          "enum": [4]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            5
-                                                          ]
+                                                          "enum": [5]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            6
-                                                          ]
+                                                          "enum": [6]
                                                         },
                                                         {
                                                           "type": "number",
-                                                          "enum": [
-                                                            7
-                                                          ]
+                                                          "enum": [7]
                                                         }
                                                       ]
                                                     }
@@ -744,10 +581,7 @@
                                         },
                                         {
                                           "type": "object",
-                                          "required": [
-                                            "path",
-                                            "expected"
-                                          ],
+                                          "required": ["path", "expected"],
                                           "properties": {
                                             "path": {
                                               "type": "array",
@@ -760,10 +594,7 @@
                                         },
                                         {
                                           "type": "object",
-                                          "required": [
-                                            "path",
-                                            "expected"
-                                          ],
+                                          "required": ["path", "expected"],
                                           "properties": {
                                             "path": {
                                               "type": "string"
@@ -785,10 +616,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": [
-                          "from",
-                          "to"
-                        ],
+                        "required": ["from", "to"],
                         "properties": {
                           "from": {
                             "type": "string"
@@ -823,27 +651,19 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": [
-                    "pending"
-                  ]
+                  "enum": ["pending"]
                 },
                 {
                   "type": "string",
-                  "enum": [
-                    "running"
-                  ]
+                  "enum": ["running"]
                 },
                 {
                   "type": "string",
-                  "enum": [
-                    "completed"
-                  ]
+                  "enum": ["completed"]
                 },
                 {
                   "type": "string",
-                  "enum": [
-                    "failed"
-                  ]
+                  "enum": ["failed"]
                 }
               ]
             },
@@ -878,12 +698,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "runs",
-                    "total",
-                    "limit",
-                    "offset"
-                  ],
+                  "required": ["runs", "total", "limit", "offset"],
                   "properties": {
                     "runs": {
                       "type": "array",
@@ -911,27 +726,19 @@
                             "anyOf": [
                               {
                                 "type": "string",
-                                "enum": [
-                                  "pending"
-                                ]
+                                "enum": ["pending"]
                               },
                               {
                                 "type": "string",
-                                "enum": [
-                                  "running"
-                                ]
+                                "enum": ["running"]
                               },
                               {
                                 "type": "string",
-                                "enum": [
-                                  "completed"
-                                ]
+                                "enum": ["completed"]
                               },
                               {
                                 "type": "string",
-                                "enum": [
-                                  "failed"
-                                ]
+                                "enum": ["failed"]
                               }
                             ]
                           },
@@ -939,21 +746,15 @@
                             "anyOf": [
                               {
                                 "type": "string",
-                                "enum": [
-                                  "schedule"
-                                ]
+                                "enum": ["schedule"]
                               },
                               {
                                 "type": "string",
-                                "enum": [
-                                  "manual"
-                                ]
+                                "enum": ["manual"]
                               },
                               {
                                 "type": "string",
-                                "enum": [
-                                  "api"
-                                ]
+                                "enum": ["api"]
                               }
                             ]
                           },
@@ -1036,27 +837,19 @@
                       "anyOf": [
                         {
                           "type": "string",
-                          "enum": [
-                            "pending"
-                          ]
+                          "enum": ["pending"]
                         },
                         {
                           "type": "string",
-                          "enum": [
-                            "running"
-                          ]
+                          "enum": ["running"]
                         },
                         {
                           "type": "string",
-                          "enum": [
-                            "completed"
-                          ]
+                          "enum": ["completed"]
                         },
                         {
                           "type": "string",
-                          "enum": [
-                            "failed"
-                          ]
+                          "enum": ["failed"]
                         }
                       ]
                     },
@@ -1064,21 +857,15 @@
                       "anyOf": [
                         {
                           "type": "string",
-                          "enum": [
-                            "schedule"
-                          ]
+                          "enum": ["schedule"]
                         },
                         {
                           "type": "string",
-                          "enum": [
-                            "manual"
-                          ]
+                          "enum": ["manual"]
                         },
                         {
                           "type": "string",
-                          "enum": [
-                            "api"
-                          ]
+                          "enum": ["api"]
                         }
                       ]
                     },
@@ -1111,9 +898,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "error"
-                  ],
+                  "required": ["error"],
                   "properties": {
                     "error": {
                       "type": "string"
@@ -1145,10 +930,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "jobRun",
-                    "message"
-                  ],
+                  "required": ["jobRun", "message"],
                   "properties": {
                     "jobRun": {
                       "type": "object",
@@ -1174,27 +956,19 @@
                           "anyOf": [
                             {
                               "type": "string",
-                              "enum": [
-                                "pending"
-                              ]
+                              "enum": ["pending"]
                             },
                             {
                               "type": "string",
-                              "enum": [
-                                "running"
-                              ]
+                              "enum": ["running"]
                             },
                             {
                               "type": "string",
-                              "enum": [
-                                "completed"
-                              ]
+                              "enum": ["completed"]
                             },
                             {
                               "type": "string",
-                              "enum": [
-                                "failed"
-                              ]
+                              "enum": ["failed"]
                             }
                           ]
                         },
@@ -1202,21 +976,15 @@
                           "anyOf": [
                             {
                               "type": "string",
-                              "enum": [
-                                "schedule"
-                              ]
+                              "enum": ["schedule"]
                             },
                             {
                               "type": "string",
-                              "enum": [
-                                "manual"
-                              ]
+                              "enum": ["manual"]
                             },
                             {
                               "type": "string",
-                              "enum": [
-                                "api"
-                              ]
+                              "enum": ["api"]
                             }
                           ]
                         },
@@ -1254,9 +1022,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "error"
-                  ],
+                  "required": ["error"],
                   "properties": {
                     "error": {
                       "type": "string"

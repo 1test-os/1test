@@ -38,6 +38,18 @@ export default fp(async (fastify) => {
         },
       },
     },
+    refResolver: {
+      buildLocalReference(json, baseUri, fragment, i) {
+        if (!json.title && json.$id) {
+          json.title = json.$id;
+        }
+        // Fallback if no $id is present
+        if (!json.$id) {
+          return `def-${i}`;
+        }
+        return `${json.$id}`;
+      },
+    },
   });
 
   await fastify.register(swaggerUi, {

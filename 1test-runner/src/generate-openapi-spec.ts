@@ -36,7 +36,9 @@ async function generateOpenAPISpec() {
     await writeFile(outputPath, JSON.stringify(spec, null, 2), "utf-8");
 
     console.log(`✅ OpenAPI spec generated successfully: ${outputPath}`);
-    console.log(`📊 Routes documented: ${Object.keys(spec.paths || {}).length}`);
+    console.log(
+      `📊 Routes documented: ${Object.keys(spec.paths || {}).length}`,
+    );
   } catch (error) {
     console.error("❌ Error generating OpenAPI spec:", error);
     process.exit(1);
