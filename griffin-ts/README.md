@@ -12,7 +12,7 @@ The griffin Test System provides a TypeScript DSL for defining API tests. Tests 
 ## Installation
 
 ```bash
-npm install griffin-test-system
+npm install griffin
 ```
 
 ## Installation
@@ -29,7 +29,7 @@ Create test files in `__griffin__` directories. When executed, they output JSON 
 ### Basic Example
 
 ```typescript
-import { GET, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-test-system/src/index";
+import { GET, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-ts/src/index";
 
 const builder = new ApiCheckBuilder({
   name: "health-check",
@@ -53,7 +53,7 @@ plan.create({
 ### Advanced Example with Waits
 
 ```typescript
-import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency, Wait } from "../griffin-test-system/src/index";
+import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency, Wait } from "../griffin-ts/src/index";
 
 const builder = new ApiCheckBuilder({
   name: "foo-bar-check",

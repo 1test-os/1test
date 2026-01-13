@@ -16,7 +16,7 @@ First, install dependencies for the test system and plan executor:
 
 ```bash
 # Install test system dependencies
-cd griffin-test-system
+cd griffin-ts
 npm install
 npm run build
 
@@ -97,10 +97,10 @@ Or the script will automatically try to use `npx tsx` as a fallback.
 
 ### "Test system not built" error
 
-Make sure you've built both `griffin-test-system` and `griffin-plan-executor`:
+Make sure you've built both `griffin-ts` and `griffin-plan-executor`:
 
 ```bash
-cd griffin-test-system && npm install && npm run build
+cd griffin-ts && npm install && npm run build
 cd ../griffin-plan-executor && npm install && npm run build
 ```
 
@@ -120,7 +120,7 @@ Same as above - ensure both TypeScript projects are built.
 bastion/
 ├── griffin-cli/          # TypeScript CLI tool
 ├── griffin-runner/       # TypeScript orchestration service
-├── griffin-test-system/  # TypeScript DSL library
+├── griffin-ts/  # TypeScript DSL library
 ├── griffin-plan-executor/# TypeScript plan executor
 └── __griffin__/          # Test files directory
     └── example-check.ts

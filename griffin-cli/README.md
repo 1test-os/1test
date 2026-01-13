@@ -20,7 +20,7 @@ The griffin CLI tool allows developers to run API tests locally and manage their
 
 - Node.js 20+
 - `tsx` installed globally or available via `npx` (for executing TypeScript files)
-- Built `griffin-test-system` and `griffin-plan-executor` projects (see main README)
+- Built `griffin-ts` and `griffin-plan-executor` projects (see main README)
 
 ## Installation
 
@@ -138,9 +138,9 @@ npm run dev run-local 3000
 
 ## Troubleshooting
 
-**"Test system not built"**: Make sure you've built `griffin-test-system`:
+**"Test system not built"**: Make sure you've built `griffin-ts`:
 ```bash
-cd ../griffin-test-system && npm install && npm run build
+cd ../griffin-ts && npm install && npm run build
 ```
 
 **"Plan executor not built"**: Make sure you've built `griffin-plan-executor`:

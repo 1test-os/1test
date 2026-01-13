@@ -16,12 +16,12 @@ export async function runTestFile(
   
   // Check if test system and executor are built
   const workspaceRoot = findWorkspaceRoot();
-  const testSystemPath = path.join(workspaceRoot, 'griffin-test-system', 'dist');
+  const testSystemPath = path.join(workspaceRoot, 'griffin-ts', 'dist');
   const executorPath = path.join(workspaceRoot, 'griffin-plan-executor', 'dist');
   
   if (!fs.existsSync(testSystemPath)) {
     throw new Error(
-      'Test system not built. Please run: cd griffin-test-system && npm install && npm run build'
+      'Test system not built. Please run: cd griffin-ts && npm install && npm run build'
     );
   }
   
@@ -95,7 +95,7 @@ function findWorkspaceRoot(): string {
   let current = process.cwd();
   while (current !== path.dirname(current)) {
     const testCliPath = path.join(current, 'griffin-cli');
-    const testSystemPath = path.join(current, 'griffin-test-system');
+    const testSystemPath = path.join(current, 'griffin-ts');
     if (fs.existsSync(testCliPath) && fs.existsSync(testSystemPath)) {
       return current;
     }

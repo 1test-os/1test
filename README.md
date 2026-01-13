@@ -25,7 +25,7 @@ The orchestration service responsible for scheduling and executing tests. Ensure
 - Stores execution results and logs in PostgreSQL
 - Provides REST API for CLI interactions
 
-### 3. [griffin-test-system](./griffin-test-system/)
+### 3. [griffin-ts](./griffin-ts/)
 The TypeScript DSL library for defining API tests. Tests are written in TypeScript and output JSON test plans that can be executed by the plan executor.
 
 **Key Features:**
@@ -59,7 +59,7 @@ A simple JSON API server for testing griffin functionality. Provides basic CRUD 
 
 1. **Build the TypeScript projects**:
    ```bash
-   cd griffin-test-system && npm install && npm run build
+   cd griffin-ts && npm install && npm run build
    cd ../griffin-plan-executor && npm install && npm run build
    cd ../griffin-cli && npm install && npm run build
    ```
@@ -72,7 +72,7 @@ A simple JSON API server for testing griffin functionality. Provides basic CRUD 
 2. **Create a test file** in a `__griffin__` directory:
    ```typescript
    // __griffin__/my-test.ts
-   import { GET, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-test-system/src/index";
+   import { GET, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-ts/src/index";
    
    const builder = new ApiCheckBuilder({
      name: "my-check",

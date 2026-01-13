@@ -1,4 +1,4 @@
-import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency, Wait } from "../griffin-test-system/src/index";
+import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency, Wait } from "../griffin-ts/src/index";
 
 const builder = new ApiCheckBuilder({
   name: "sample-api-test",

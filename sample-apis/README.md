@@ -81,7 +81,7 @@ curl -X POST http://localhost:3000/api/items -H "Content-Type: application/json"
 Create a test file in `__griffin__/` directory:
 
 ```typescript
-import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-test-system/src/index";
+import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-ts/src/index";
 
 const builder = new ApiCheckBuilder({
   name: "sample-api-test",
