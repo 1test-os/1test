@@ -1,6 +1,6 @@
 # Sample APIs
 
-A simple JSON API server for testing 1test functionality. This server provides basic CRUD operations and can be extended as needed for testing different scenarios.
+A simple JSON API server for testing griffin functionality. This server provides basic CRUD operations and can be extended as needed for testing different scenarios.
 
 ## Features
 
@@ -76,12 +76,12 @@ curl http://localhost:3000/api/items
 curl -X POST http://localhost:3000/api/items -H "Content-Type: application/json" -d '{"name":"Test","value":42}'
 ```
 
-## Testing with 1test
+## Testing with griffin
 
-Create a test file in `__1test__/` directory:
+Create a test file in `__griffin__/` directory:
 
 ```typescript
-import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency } from "../1test-test-system/src/index";
+import { GET, POST, ApiCheckBuilder, JSON, START, END, Frequency } from "../griffin-test-system/src/index";
 
 const builder = new ApiCheckBuilder({
   name: "sample-api-test",
@@ -110,5 +110,5 @@ plan.create({
 
 Then run:
 ```bash
-node 1test-cli/dist/cli.js run-local
+node griffin-cli/dist/cli.js run-local
 ```

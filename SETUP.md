@@ -1,6 +1,6 @@
-# Setup Guide for 1test
+# Setup Guide for griffin
 
-This guide will help you set up and test compile the 1test CLI with sample tests.
+This guide will help you set up and test compile the griffin CLI with sample tests.
 
 ## Prerequisites
 
@@ -16,12 +16,12 @@ First, install dependencies for the test system and plan executor:
 
 ```bash
 # Install test system dependencies
-cd 1test-test-system
+cd griffin-test-system
 npm install
 npm run build
 
 # Install plan executor dependencies
-cd ../1test-plan-executor
+cd ../griffin-plan-executor
 npm install
 npm run build
 
@@ -31,7 +31,7 @@ cd ..
 ### 2. Build the CLI
 
 ```bash
-cd 1test-cli
+cd griffin-cli
 npm install
 npm run build
 ```
@@ -40,30 +40,30 @@ This creates the compiled TypeScript in the `dist/` directory.
 
 ### 4. Create Sample Test
 
-A sample test file has been created at `__1test__/example-check.ts`. This test:
+A sample test file has been created at `__griffin__/example-check.ts`. This test:
 - Makes a GET request to `/health`
 - Waits 1 second
 - Outputs a JSON test plan
 
 You can create additional tests by:
-1. Creating a `__1test__` directory anywhere in your project
+1. Creating a `__griffin__` directory anywhere in your project
 2. Adding `.ts` files that use the test system DSL
 3. The CLI will automatically discover and run them
 
 ### 5. Run Tests Locally
 
-The CLI will automatically discover all test files in `__1test__` directories. Each test file specifies its own `endpoint_host` (including port):
+The CLI will automatically discover all test files in `__griffin__` directories. Each test file specifies its own `endpoint_host` (including port):
 
 ```bash
 # Using the built CLI
-node 1test-cli/dist/cli.js run-local
+node griffin-cli/dist/cli.js run-local
 
 # Or using npm scripts (development mode)
-cd 1test-cli
+cd griffin-cli
 npm run dev run-local
 
 # The CLI will:
-# - Discover all .ts files in __1test__ directories
+# - Discover all .ts files in __griffin__ directories
 # - Execute each test file (which outputs JSON)
 # - Run the JSON test plan using the endpoint_host from each test file
 # - Display results with pass/fail status
@@ -73,7 +73,7 @@ npm run dev run-local
 
 **Future**: Once published to npm, you'll be able to use:
 ```bash
-npx 1test-cli run-local
+npx griffin-cli run-local
 ```
 
 ## Troubleshooting
@@ -97,11 +97,11 @@ Or the script will automatically try to use `npx tsx` as a fallback.
 
 ### "Test system not built" error
 
-Make sure you've built both `1test-test-system` and `1test-plan-executor`:
+Make sure you've built both `griffin-test-system` and `griffin-plan-executor`:
 
 ```bash
-cd 1test-test-system && npm install && npm run build
-cd ../1test-plan-executor && npm install && npm run build
+cd griffin-test-system && npm install && npm run build
+cd ../griffin-plan-executor && npm install && npm run build
 ```
 
 ### "Plan executor not found" error
@@ -118,10 +118,10 @@ Same as above - ensure both TypeScript projects are built.
 
 ```
 bastion/
-├── 1test-cli/          # TypeScript CLI tool
-├── 1test-runner/       # TypeScript orchestration service
-├── 1test-test-system/  # TypeScript DSL library
-├── 1test-plan-executor/# TypeScript plan executor
-└── __1test__/          # Test files directory
+├── griffin-cli/          # TypeScript CLI tool
+├── griffin-runner/       # TypeScript orchestration service
+├── griffin-test-system/  # TypeScript DSL library
+├── griffin-plan-executor/# TypeScript plan executor
+└── __griffin__/          # Test files directory
     └── example-check.ts
 ```
