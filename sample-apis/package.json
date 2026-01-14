@@ -1,14 +1,14 @@
 {
   "name": "sample-apis",
   "version": "0.1.0",
-  "description": "Sample API server for testing 1test",
+  "description": "Sample API server for testing griffin",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js"
   },
-  "keywords": ["1test", "api", "testing", "sample"],
+  "keywords": ["griffin", "api", "testing", "sample"],
   "author": "",
   "license": "MIT",
   "dependencies": {
