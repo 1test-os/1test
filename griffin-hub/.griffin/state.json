@@ -1,0 +1,13 @@
+{
+  "stateVersion": 2,
+  "projectId": "griffin-hub",
+  "environments": {
+    "local": {
+      "baseUrl": "http://localhost:3000"
+    }
+  },
+  "plans": {
+    "local": []
+  },
+  "defaultEnvironment": "local"
+}

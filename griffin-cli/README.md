@@ -1,129 +1,314 @@
-# griffin CLI
+# Griffin CLI
 
-The griffin CLI tool allows developers to run API tests locally and manage their test configurations. It scans for `.ts` files in `__griffin__` subdirectories and executes them using the test system.
+Terraform-like CLI for managing monitoring tests as code.
 
-## Features
+## Overview
 
-✅ **Currently Working**:
-- Scan and discover test files in `__griffin__` subdirectories
-- Run tests locally against development servers
-- Execute TypeScript test files and run JSON test plans
-- Display test execution results with detailed error reporting
-- Configure runner hosts for remote execution
+Griffin CLI enables monitoring-as-code by syncing local test plan files to a Griffin runner. It provides a declarative workflow similar to Terraform:
 
-🚧 **Coming Soon**:
-- Deploy tests to remote runners
-- View logs from remote test executions
-- Execute tests remotely on demand
-
-## Prerequisites
-
-- Node.js 20+
-- `tsx` installed globally or available via `npx` (for executing TypeScript files)
-- Built `griffin-ts` and `griffin-plan-executor` projects (see main README)
+1. Write test plans in TypeScript/JavaScript
+2. Validate plans locally
+3. Preview changes with `griffin plan`
+4. Apply changes with `griffin apply`
+5. Monitor execution with `griffin status`
 
 ## Installation
 
-### Local Development
-
 ```bash
-cd griffin-cli
-npm install
-npm run build
+npm install -g griffin-cli
 ```
 
-### Using with npx (Recommended)
+## Quick Start
 
-Once published, you can use the CLI directly with npx:
-
-```bash
-npx griffin-cli run-local 3000
-```
-
-### Local Development Usage
-
-After building, you can use the CLI in several ways:
+### 1. Initialize
 
 ```bash
-# Using the built executable directly
-node dist/cli.js run-local 3000
-
-# Or using npm scripts
-npm run dev run-local 3000
-
-# Or after linking (npm link), use globally
-griffin run-local 3000
+griffin init --runner-url http://localhost:3000
 ```
 
-## Usage
+This creates:
 
-### Run Tests Locally
+- `.griffin/state.json` - tracks synced plans and project ID
+- `.griffinrc.json` - project configuration
 
-```bash
-npx griffin-cli run-local
-# or
-node dist/cli.js run-local
-```
+The project ID is auto-detected from `package.json` name or directory name. Override with `--project <name>`.
 
-The CLI will:
-1. Discover all `.ts` files in `__griffin__` directories
-2. Execute each test file (which outputs JSON)
-3. Run the JSON test plan using the `endpoint_host` specified in each test file
-4. Display results with pass/fail status
+### 2. Create Test Plans
 
-**Note**: Each test file specifies its own `endpoint_host` (including port) in the `ApiCheckBuilder` configuration. For example:
+Create a file `api-health.griffin.ts`:
+
 ```typescript
-const builder = new ApiCheckBuilder({
-  name: "my-check",
-  endpoint_host: "http://localhost:3000"  // Port is specified here
-});
+import {
+  TestPlanV1,
+  HttpMethod,
+  ResponseFormat,
+  NodeType,
+  FrequencyUnit,
+} from "griffin-plan-executor";
+
+export const healthCheck: TestPlanV1 = {
+  id: "api-health-check",
+  name: "API Health Check",
+  version: "1.0",
+  endpoint_host: "https://api.example.com",
+  frequency: {
+    every: 5,
+    unit: FrequencyUnit.MINUTE,
+  },
+  nodes: [
+    {
+      id: "health-request",
+      data: {
+        type: NodeType.ENDPOINT,
+        method: HttpMethod.GET,
+        path: "/health",
+        response_format: ResponseFormat.JSON,
+      },
+    },
+    {
+      id: "check-status",
+      data: {
+        type: NodeType.ASSERTION,
+        assertions: [
+          {
+            path: ["status"],
+            predicate: {
+              expected: "ok",
+              operator: 0, // EQUAL
+            },
+          },
+        ],
+      },
+    },
+  ],
+  edges: [{ from: "health-request", to: "check-status" }],
+};
 ```
 
-**Secrets**: If your test plans use secrets (via the `secret()` function), they will be resolved using environment variables when running locally. For AWS Secrets Manager or Vault, configure the appropriate environment variables or credentials. See [griffin-runner CONFIG.md](../griffin-runner/CONFIG.md) for details.
-
-**Example Output**:
-```
-Running tests locally
-
-Found 1 test file(s):
-  - /path/to/__griffin__/example-check.ts
-
-Running example-check.ts
-..
-✓ Test passed
-
-Summary: 1 passed, 0 failed
-```
-
-### Configure Runner Host
+### 3. Validate Plans
 
 ```bash
-npx griffin-cli configure-runner-host "https://runner-host.com"
+griffin validate
 ```
 
-This saves the runner host configuration to `~/.griffin/config.json`.
+Checks that all plan files are valid without syncing.
 
-### Other Commands (Coming Soon)
+### 4. Preview Changes
 
 ```bash
-# Deploy tests to the configured runner
-npx griffin-cli deploy
-
-# View logs for a specific check
-npx griffin-cli logs foo-bar-check
-
-# Execute a check remotely
-npx griffin-cli execute-remote foo-bar-check
+griffin plan
 ```
 
-## How It Works
+Shows what will be created, updated, or deleted.
 
-1. **Discovery**: The CLI scans the current directory (and subdirectories) for `__griffin__` folders containing `.ts` files
-2. **Execution**: For each test file:
-   - Runs the TypeScript file using `tsx` (or `npx tsx`)
-   - Captures the JSON output from the test system
-   - Executes the JSON plan using the plan executor
-   - Displays results with node-by-node status
+### 5. Apply Changes
+
+```bash
+griffin apply
+```
+
+Syncs plans to the runner. Use `--auto-approve` to skip confirmation.
+
+### 6. Check Status
+
+```bash
+griffin status
+```
+
+Shows recent run results.
+
+### 7. Trigger Manual Run
+
+```bash
+griffin run --plan-name "API Health Check"
+```
+
+Triggers a plan execution. Use `--wait` to block until complete.
+
+## Commands
+
+### `griffin init`
+
+Initialize Griffin in the current directory.
+
+**Options:**
+
+- `--runner-url <url>` - Runner base URL (required)
+- `--api-token <token>` - API authentication token
+- `--project <name>` - Project ID (defaults to package.json name or directory name)
+
+**Example:**
+
+```bash
+griffin init --runner-url https://runner.example.com --api-token abc123
+griffin init --runner-url http://localhost:3000 --project my-service
+```
+
+**Project Detection:**
+Griffin auto-detects the project ID by:
+
+1. Looking for `package.json` and using the `name` field
+2. Falling back to the current directory name
+3. Using the `--project` flag if provided
+
+### `griffin validate`
+
+Validate test plan files without syncing.
+
+**Example:**
+
+```bash
+griffin validate
+```
+
+### `griffin plan`
+
+Show what changes would be applied.
+
+**Options:**
+
+- `--json` - Output in JSON format
+
+**Example:**
+
+```bash
+griffin plan
+griffin plan --json
+```
+
+**Exit codes:**
+
+- `0` - No changes
+- `1` - Error
+- `2` - Changes pending
+
+### `griffin apply`
+
+Apply changes to the runner.
+
+**Options:**
+
+- `--auto-approve` - Skip confirmation prompt
+- `--dry-run` - Show what would be done without making changes
+
+**Example:**
+
+```bash
+griffin apply
+griffin apply --auto-approve
+griffin apply --dry-run
+```
+
+### `griffin status`
+
+Show runner status and recent runs.
+
+**Options:**
+
+- `--plan-id <id>` - Filter by plan ID
+- `--limit <number>` - Number of runs to show (default: 10)
+
+**Example:**
+
+```bash
+griffin status
+griffin status --plan-id api-health-check --limit 5
+```
+
+### `griffin run`
+
+Trigger a plan run on the runner.
+
+**Options:**
+
+- `--plan-id <id>` - Plan ID to run
+- `--plan-name <name>` - Plan name to run
+- `--wait` - Wait for run to complete
+
+**Example:**
+
+```bash
+griffin run --plan-name "API Health Check"
+griffin run --plan-id api-health-check --wait
+```
+
+## Configuration
+
+### Environment Variables
+
+- `GRIFFIN_RUNNER_URL` - Runner base URL
+- `GRIFFIN_API_TOKEN` - API authentication token
+
+### Config File (`.griffinrc.json`)
+
+```json
+{
+  "runner": {
+    "baseUrl": "http://localhost:3000",
+    "apiToken": "your-token"
+  },
+  "discovery": {
+    "pattern": "**/*.griffin.{ts,js}",
+    "ignore": ["node_modules/**", "dist/**"]
+  }
+}
+```
+
+### Precedence
+
+Configuration is resolved with the following precedence (highest to lowest):
+
+1. CLI flags
+2. Environment variables
+3. Config file (`.griffinrc.json`)
+
+## State Management
+
+Griffin maintains a state file at `.griffin/state.json` that tracks:
+
+- Project ID (set at init, stable across renames)
+- Which plans have been synced
+- Last applied hash (for change detection)
+- Remote plan IDs
+
+**Important:** Commit `.griffinrc.json` to version control, but add `.griffin/` to `.gitignore` for team workflows.
+
+**Project Identity:**
+
+- Project ID is captured during `griffin init`
+- Stays stable even if you rename the package or directory
+- Use `griffin rename --project <new-name>` (future feature) to change it
+
+## Test Plan Discovery
+
+By default, Griffin discovers test plans from files matching `**/*.griffin.{ts,js}`.
+
+Plans must:
+
+- Export `TestPlanV1` objects (default or named exports)
+- Have all required fields (`id`, `name`, `version`, `endpoint_host`, `nodes`, `edges`)
+
+## Diff Rules
+
+Griffin computes changes using:
+
+- **CREATE**: Plan exists locally but not in state
+- **UPDATE**: Plan exists in both, but hash differs
+- **DELETE**: Plan exists in state but not locally
+- **NOOP**: Plan exists in both with same hash
+
+Change detection uses a SHA-256 hash of the normalized plan payload.
+
+## API Compatibility
+
+Griffin CLI is compatible with `griffin-runner` API v1.
+
+Required endpoints:
+
+- `POST /plan/plan` - Create/update plan
+- `GET /runs/runs` - List runs
+- `GET /runs/runs/:id` - Get run details
+- `POST /runs/plan/:id/run` - Trigger run
 
 ## Development
 
@@ -131,28 +316,43 @@ npx griffin-cli execute-remote foo-bar-check
 # Install dependencies
 npm install
 
-# Build TypeScript
+# Build
 npm run build
 
-# Run in development mode (with tsx)
-npm run dev run-local 3000
+# Run in development
+npm run dev -- <command>
+
+# Example
+npm run dev -- validate
 ```
 
-## Troubleshooting
+## Architecture
 
-**"Test system not built"**: Make sure you've built `griffin-ts`:
-```bash
-cd ../griffin-ts && npm install && npm run build
+```
+griffin-cli/
+├── src/
+│   ├── commands/         # Command implementations
+│   │   ├── init.ts
+│   │   ├── validate.ts
+│   │   ├── plan.ts
+│   │   ├── apply.ts
+│   │   ├── status.ts
+│   │   └── run.ts
+│   ├── core/            # Core logic
+│   │   ├── api.ts       # Runner API client
+│   │   ├── apply.ts     # Apply engine
+│   │   ├── config.ts    # Config management
+│   │   ├── diff.ts      # Diff computation
+│   │   ├── discovery.ts # Plan discovery
+│   │   └── state.ts     # State management
+│   ├── schemas/         # Type definitions
+│   │   ├── payload.ts   # Plan payload schemas
+│   │   └── state.ts     # State file schemas
+│   ├── cli-new.ts       # CLI entry point
+│   └── index.ts         # Public API exports
+└── package.json
 ```
 
-**"Plan executor not built"**: Make sure you've built `griffin-plan-executor`:
-```bash
-cd ../griffin-plan-executor && npm install && npm run build
-```
+## License
 
-**"tsx is not available"**: Install tsx globally:
-```bash
-npm install -g tsx
-```
-
-Or ensure `npx` is available (it will use `npx tsx` as a fallback).
+MIT

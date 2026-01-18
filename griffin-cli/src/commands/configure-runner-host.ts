@@ -1,9 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
-const CONFIG_DIR = path.join(os.homedir(), '.griffin');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const CONFIG_DIR = path.join(os.homedir(), ".griffin");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 export async function executeConfigureRunnerHost(host: string): Promise<void> {
   console.log(`Configuring runner host: ${host}`);
@@ -17,10 +17,10 @@ export async function executeConfigureRunnerHost(host: string): Promise<void> {
   let config: any = {};
   if (fs.existsSync(CONFIG_FILE)) {
     try {
-      const configData = fs.readFileSync(CONFIG_FILE, 'utf-8');
+      const configData = fs.readFileSync(CONFIG_FILE, "utf-8");
       config = JSON.parse(configData);
     } catch (error) {
-      console.warn('Warning: Could not read existing config, creating new one');
+      console.warn("Warning: Could not read existing config, creating new one");
     }
   }
 
@@ -38,7 +38,7 @@ export function getRunnerHost(): string | null {
   }
 
   try {
-    const configData = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const configData = fs.readFileSync(CONFIG_FILE, "utf-8");
     const config = JSON.parse(configData);
     return config.runnerHost || null;
   } catch {
