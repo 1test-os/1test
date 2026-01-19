@@ -7,7 +7,7 @@ import {
   TriggerType,
   type JobRun,
 } from "../../schemas/job-run.js";
-import type { TestPlanV1 } from "griffin-plan-executor";
+import type { TestPlanV1 } from "griffin/types";
 import { FastifyTypeBox } from "../../types.js";
 import {
   ErrorResponseOpts,

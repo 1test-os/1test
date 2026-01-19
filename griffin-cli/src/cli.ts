@@ -3,25 +3,29 @@
 import { Command } from "commander";
 import { executeInit } from "./commands/init.js";
 import { executeValidate } from "./commands/validate.js";
-import { executePlan } from "./commands/plan.js";
-import { executeApply } from "./commands/apply.js";
-import { executeStatus } from "./commands/status.js";
-import { executeRun } from "./commands/run-remote.js";
 import { executeGenerateKey } from "./commands/generate-key.js";
+
+// Local commands
+import { executeRunLocal } from "./commands/local/run.js";
 import {
-  executeEnvList,
-  executeEnvAdd,
-  executeEnvRemove,
-  executeEnvDefault,
-} from "./commands/env.js";
-import { executeRunnerSet, executeRunnerShow } from "./commands/runner.js";
+  executeConfigList as executeLocalConfigList,
+  executeConfigAddTarget as executeLocalConfigAddTarget,
+  executeConfigRemoveTarget as executeLocalConfigRemoveTarget,
+  executeConfigSetDefaultEnv,
+} from "./commands/local/config.js";
+
+// Hub commands
+import { executeConnect } from "./commands/hub/connect.js";
+import { executeStatus } from "./commands/hub/status.js";
+import { executeRuns } from "./commands/hub/runs.js";
+import { executePlan } from "./commands/hub/plan.js";
+import { executeApply } from "./commands/hub/apply.js";
+import { executeRun } from "./commands/hub/run.js";
 import {
-  executeConfigSet,
-  executeConfigGet,
-  executeConfigList,
-  executeConfigDelete,
-} from "./commands/config.js";
-import { executeRunLocal } from "./commands/run.js";
+  executeConfigList as executeHubConfigList,
+  executeConfigAddTarget as executeHubConfigAddTarget,
+  executeConfigRemoveTarget as executeHubConfigRemoveTarget,
+} from "./commands/hub/config.js";
 
 const program = new Command();
 
@@ -30,9 +34,7 @@ program
   .description("Griffin CLI - Monitoring as Code")
   .version("1.0.0");
 
-// Import run-local command
-
-// init command
+// Top-level commands
 program
   .command("init")
   .description("Initialize griffin in the current directory")
@@ -44,7 +46,6 @@ program
     await executeInit(options);
   });
 
-// validate command
 program
   .command("validate")
   .description("Validate test plan files without syncing")
@@ -52,8 +53,97 @@ program
     await executeValidate();
   });
 
-// plan command
 program
+  .command("generate-key")
+  .description("Generate a cryptographically secure API key for authentication")
+  .action(async () => {
+    await executeGenerateKey();
+  });
+
+// Local command group
+const local = program.command("local").description("Local test execution");
+
+local
+  .command("run")
+  .description("Run tests locally against a target environment")
+  .option(
+    "--env <name>",
+    "Environment to run against (uses default if not specified)",
+  )
+  .action(async (options) => {
+    await executeRunLocal(options);
+  });
+
+const localConfig = local
+  .command("config")
+  .description("Manage local target configurations");
+
+localConfig
+  .command("list")
+  .description("List all local environments and their targets")
+  .action(async () => {
+    await executeLocalConfigList();
+  });
+
+localConfig
+  .command("add-target")
+  .description("Add a target to a local environment")
+  .requiredOption("--env <name>", "Environment name")
+  .requiredOption("--key <key>", "Target key")
+  .requiredOption("--url <url>", "Target URL")
+  .action(async (options) => {
+    await executeLocalConfigAddTarget(options);
+  });
+
+localConfig
+  .command("remove-target")
+  .description("Remove a target from a local environment")
+  .requiredOption("--env <name>", "Environment name")
+  .requiredOption("--key <key>", "Target key")
+  .action(async (options) => {
+    await executeLocalConfigRemoveTarget(options);
+  });
+
+localConfig
+  .command("set-default-env")
+  .description("Set the default environment")
+  .requiredOption("--env <name>", "Environment name")
+  .action(async (options) => {
+    await executeConfigSetDefaultEnv(options);
+  });
+
+// Hub command group
+const hub = program.command("hub").description("Griffin Hub operations");
+
+hub
+  .command("connect")
+  .description("Configure hub connection")
+  .requiredOption("--url <url>", "Hub URL")
+  .option("--token <token>", "API authentication token")
+  .action(async (options) => {
+    await executeConnect(options);
+  });
+
+hub
+  .command("status")
+  .description("Show hub connection status")
+  .action(async () => {
+    await executeStatus();
+  });
+
+hub
+  .command("runs")
+  .description("Show recent runs from the hub")
+  .option("--plan <name>", "Filter by plan name")
+  .option("--limit <number>", "Number of runs to show", "10")
+  .action(async (options) => {
+    await executeRuns({
+      ...options,
+      limit: parseInt(options.limit, 10),
+    });
+  });
+
+hub
   .command("plan")
   .description("Show what changes would be applied")
   .option(
@@ -65,10 +155,9 @@ program
     await executePlan(options);
   });
 
-// apply command
-program
+hub
   .command("apply")
-  .description("Apply changes to the runner")
+  .description("Apply changes to the hub")
   .option(
     "--env <name>",
     "Environment to apply to (uses default if not specified)",
@@ -79,174 +168,48 @@ program
     await executeApply(options);
   });
 
-// status command
-program
-  .command("status")
-  .description("Show runner status and recent runs")
-  .option("--plan-id <id>", "Filter by plan ID")
-  .option("--limit <number>", "Number of runs to show", "10")
-  .action(async (options) => {
-    await executeStatus({
-      ...options,
-      limit: parseInt(options.limit, 10),
-    });
-  });
-
-// run-local command
-program
+hub
   .command("run")
-  .description("Run tests locally against a target environment")
-  .option(
-    "--env <name>",
-    "Environment to run against (uses default if not specified)",
-  )
-  .action(async (options) => {
-    await executeRunLocal(options);
-  });
-
-// run command
-program
-  .command("run-remote")
-  .description("Trigger a plan run on the runner")
-  .option("--plan-id <id>", "Plan ID to run")
-  .option("--plan-name <name>", "Plan name to run")
-  .option(
-    "--env <name>",
-    "Environment to use when resolving plan name from local state",
-  )
-  .requiredOption(
-    "--target-env <name>",
-    "Target environment for runner target resolution (e.g., staging, production)",
-  )
+  .description("Trigger a plan run on the hub")
+  .requiredOption("--plan <name>", "Plan name to run")
+  .requiredOption("--env <name>", "Target environment")
   .option("--wait", "Wait for run to complete")
   .action(async (options) => {
     await executeRun(options);
   });
 
-// generate-key command
-program
-  .command("generate-key")
-  .description(
-    "Generate a cryptographically secure API key for runner authentication",
-  )
-  .action(async () => {
-    await executeGenerateKey();
-  });
-
-// env command group
-const envCommand = program
-  .command("env")
-  .description("Manage target environments");
-
-envCommand
-  .command("list")
-  .description("List all configured environments")
-  .action(async () => {
-    await executeEnvList();
-  });
-
-envCommand
-  .command("add <name>")
-  .description("Add or update an environment")
-  .requiredOption("--base-url <url>", "Base URL for the environment")
-  .action(async (name, options) => {
-    await executeEnvAdd(name, options);
-  });
-
-envCommand
-  .command("remove <name>")
-  .description("Remove an environment")
-  .action(async (name) => {
-    await executeEnvRemove(name);
-  });
-
-envCommand
-  .command("default <name>")
-  .description("Set the default environment")
-  .action(async (name) => {
-    await executeEnvDefault(name);
-  });
-
-// runner command group
-const runnerCommand = program
-  .command("runner")
-  .description("Manage runner connection settings");
-
-runnerCommand
-  .command("set")
-  .description("Configure runner connection")
-  .requiredOption("--base-url <url>", "Runner base URL")
-  .option("--api-token <token>", "API authentication token")
-  .action(async (options) => {
-    await executeRunnerSet(options);
-  });
-
-runnerCommand
-  .command("show")
-  .description("Show current runner configuration")
-  .action(async () => {
-    await executeRunnerShow();
-  });
-
-// config command group
-const configCommand = program
+const hubConfig = hub
   .command("config")
-  .description("Manage runner target configurations");
+  .description("Manage hub target configurations");
 
-configCommand
-  .command("set")
-  .description("Set a target base URL for an organization and environment")
-  .requiredOption("--org <id>", "Organization ID")
-  .requiredOption("--env <name>", "Environment name")
-  .requiredOption("--target <key>", "Target key")
-  .requiredOption("--base-url <url>", "Base URL for the target")
-  .action(async (options) => {
-    await executeConfigSet({
-      organizationId: options.org,
-      environment: options.env,
-      targetKey: options.target,
-      baseUrl: options.baseUrl,
-    });
-  });
-
-configCommand
-  .command("get")
-  .description("Get a target base URL for an organization and environment")
-  .requiredOption("--org <id>", "Organization ID")
-  .requiredOption("--env <name>", "Environment name")
-  .requiredOption("--target <key>", "Target key")
-  .action(async (options) => {
-    await executeConfigGet({
-      organizationId: options.org,
-      environment: options.env,
-      targetKey: options.target,
-    });
-  });
-
-configCommand
+hubConfig
   .command("list")
-  .description("List all runner configurations")
+  .description("List all hub configurations")
   .option("--org <id>", "Filter by organization ID")
   .option("--env <name>", "Filter by environment name")
   .action(async (options) => {
-    await executeConfigList({
-      organizationId: options.org,
-      environment: options.env,
-    });
+    await executeHubConfigList(options);
   });
 
-configCommand
-  .command("delete")
-  .description("Delete a target from an organization and environment")
+hubConfig
+  .command("add-target")
+  .description("Add a target to hub configuration")
   .requiredOption("--org <id>", "Organization ID")
   .requiredOption("--env <name>", "Environment name")
-  .requiredOption("--target <key>", "Target key")
+  .requiredOption("--key <key>", "Target key")
+  .requiredOption("--url <url>", "Target URL")
   .action(async (options) => {
-    await executeConfigDelete({
-      organizationId: options.org,
-      environment: options.env,
-      targetKey: options.target,
-    });
+    await executeHubConfigAddTarget(options);
+  });
+
+hubConfig
+  .command("remove-target")
+  .description("Remove a target from hub configuration")
+  .requiredOption("--org <id>", "Organization ID")
+  .requiredOption("--env <name>", "Environment name")
+  .requiredOption("--key <key>", "Target key")
+  .action(async (options) => {
+    await executeHubConfigRemoveTarget(options);
   });
 
 // Parse arguments

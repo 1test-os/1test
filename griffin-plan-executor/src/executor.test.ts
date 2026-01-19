@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { executePlanV1 } from "./executor.js";
 import { StubAdapter } from "./adapters/stub.js";
-import {
-  NodeType,
-  HttpMethod,
-  ResponseFormat,
-  type TestPlanV1,
-} from "./schemas.js";
+import { NodeType, HttpMethod, ResponseFormat } from "griffin/schema";
+import { TestPlanV1 } from "griffin/types";
 import { START, END, type ExecutionOptions } from "./types.js";
 import { LocalEventEmitter, type ExecutionEvent } from "./events";
 

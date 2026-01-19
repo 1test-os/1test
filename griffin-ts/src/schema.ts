@@ -1,6 +1,8 @@
 import { Type, type Static, type TSchema } from "typebox";
 import { Ref, UnionOneOf } from "./shared.js";
 
+export const TEST_PLAN_VERSION = "1.0";
+
 // Secret reference schema for values that may contain secrets
 export const SecretRefDataSchema = Type.Object({
   provider: Type.String(),
@@ -75,6 +77,7 @@ export const TargetRefSchema = Type.Object({
   type: Type.Literal("target"),
   key: Type.String(),
 });
+export type TargetRef = Static<typeof TargetRefSchema>;
 
 export const EndpointSchema = Type.Object(
   {
@@ -212,19 +215,19 @@ export const AssertionSchema = Type.Union(
   [
     Type.Intersect([
       Type.Object({
-        nodeType: Type.Literal(ResponseFormat.JSON),
+        assertionType: Type.Literal(ResponseFormat.JSON),
       }),
       JSONAssertionSchema,
     ]),
     Type.Intersect([
       Type.Object({
-        nodeType: Type.Literal(ResponseFormat.XML),
+        assertionType: Type.Literal(ResponseFormat.XML),
       }),
       XMLAssertionSchema,
     ]),
     Type.Intersect([
       Type.Object({
-        nodeType: Type.Literal(ResponseFormat.TEXT),
+        assertionType: Type.Literal(ResponseFormat.TEXT),
       }),
       TextAssertionSchema,
     ]),

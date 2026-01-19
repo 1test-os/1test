@@ -8,7 +8,9 @@ import { Value } from "typebox/value";
 export const AgentConfigSchema = Type.Object({
   // Agent identification
   agent: Type.Object({
-    location: Type.String({ description: "Location identifier for this agent" }),
+    location: Type.String({
+      description: "Location identifier for this agent",
+    }),
     metadata: Type.Optional(
       Type.Record(Type.String(), Type.String(), {
         description: "Optional metadata for display/filtering",

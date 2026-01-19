@@ -1,17 +1,17 @@
 import {
-  type Node,
-  NodeType,
-  type TestPlanV1,
-  type Endpoint,
-  ResponseFormat,
-  type Wait,
-  type Assertions,
-  HttpMethod,
-  UnaryPredicate,
-  BinaryPredicateOperator,
-  Assertion,
+  TestPlanV1,
+  Node,
+  Endpoint,
+  Wait,
+  Assertions,
   JSONAssertion,
-} from "./schemas.js";
+  Assertion,
+} from "griffin/types";
+
+import { HttpMethod, ResponseFormat, NodeType } from "griffin/schema";
+
+import { UnaryPredicate, BinaryPredicateOperator } from "griffin";
+
 import type {
   ExecutionOptions,
   ExecutionResult,
@@ -671,7 +671,7 @@ function evaluateAssertion(
   assertion: Assertion,
   responses: Record<string, NodeResponseData>,
 ): { passed: boolean; message: string } {
-  switch (assertion.nodeType) {
+  switch (assertion.assertionType) {
     case ResponseFormat.JSON:
       return evaluateJSONAssertion(assertion, responses);
     case ResponseFormat.XML:

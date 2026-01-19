@@ -1,6 +1,6 @@
 import { loadAgentConfigFromEnv } from "./config.js";
 import { PostgresQueueConsumer } from "./queue/postgres-consumer.js";
-import { AgentsApi, ConfigApi, Configuration, RunsApi} from "griffin-hub-sdk"
+import { AgentsApi, ConfigApi, Configuration, RunsApi } from "griffin-hub-sdk";
 import { WorkerService } from "./worker.js";
 import {
   AxiosAdapter,
@@ -10,7 +10,7 @@ import {
 
 /**
  * Main entry point for the Griffin Agent.
- * 
+ *
  * The agent:
  * 1. Registers with the hub
  * 2. Starts a heartbeat loop
@@ -32,11 +32,15 @@ async function main() {
 
   // Register with hub
   console.log("Registering with hub...");
-  const agentApi = new AgentsApi(new Configuration({ basePath: config.hub.url }));
-  const configApi = new ConfigApi(new Configuration({ basePath: config.hub.url }));
+  const agentApi = new AgentsApi(
+    new Configuration({ basePath: config.hub.url }),
+  );
+  const configApi = new ConfigApi(
+    new Configuration({ basePath: config.hub.url }),
+  );
   const runsApi = new RunsApi(new Configuration({ basePath: config.hub.url }));
 
-  const {data: agent} = await agentApi.agentsRegisterPost({
+  const { data: agent } = await agentApi.agentsRegisterPost({
     location: config.agent.location,
     metadata: config.agent.metadata ?? {},
   });
@@ -46,7 +50,9 @@ async function main() {
   let queueConsumer;
   if (config.queue.backend === "postgres") {
     if (!config.queue.connectionString) {
-      throw new Error("Queue connection string is required for Postgres backend");
+      throw new Error(
+        "Queue connection string is required for Postgres backend",
+      );
     }
     queueConsumer = new PostgresQueueConsumer(
       config.queue.connectionString,
@@ -65,9 +71,7 @@ async function main() {
   const secretRegistry = new SecretProviderRegistry();
 
   // Always register env provider
-  secretRegistry.register(
-    new EnvSecretProvider(config.secrets.env),
-  );
+  secretRegistry.register(new EnvSecretProvider(config.secrets.env));
 
   // Register AWS provider if enabled
   if (config.secrets.providers.includes("aws") && config.secrets.aws) {

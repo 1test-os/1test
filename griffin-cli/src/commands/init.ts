@@ -37,27 +37,28 @@ export async function executeInit(options: InitOptions): Promise<void> {
   await initState(projectId);
   console.log(`✓ Created state file: ${getStateFilePath()}`);
 
-  // Create a default local environment
-  await addEnvironment("local", { baseUrl: "http://localhost:3000" });
+  // Create a default local environment with a default target
+  await addEnvironment("local", {
+    targets: { default: "http://localhost:3000" },
+  });
   console.log(`✓ Created default 'local' environment`);
-  console.log(`  URL: http://localhost:3000`);
+  console.log(`  default: http://localhost:3000`);
 
   console.log("");
   console.log("Initialization complete!");
   console.log("");
   console.log("Next steps:");
-  console.log("  1. Configure environments:");
+  console.log("  1. Add targets to local environment:");
   console.log(
-    "     griffin env add production --base-url https://api.example.com",
-  );
-  console.log(
-    "     griffin env add staging --base-url https://staging.api.example.com",
+    "     griffin local config add-target --env local --key api --url http://localhost:3000",
   );
   console.log(
     "  2. Create test plans (*.griffin.ts files in __griffin__/ directories)",
   );
   console.log("  3. Run tests locally:");
-  console.log("     griffin run");
-  console.log("  4. Deploy to hub (optional):");
-  console.log("     griffin apply --env production");
+  console.log("     griffin local run");
+  console.log("  4. Connect to hub (optional):");
+  console.log("     griffin hub connect --url <url> --token <token>");
+  console.log("  5. Deploy to hub:");
+  console.log("     griffin hub apply");
 }

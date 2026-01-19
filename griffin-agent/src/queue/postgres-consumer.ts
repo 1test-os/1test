@@ -105,7 +105,11 @@ export class PostgresQueueConsumer implements QueueConsumer {
     );
   }
 
-  async fail(jobId: string, error: Error, retry: boolean = true): Promise<void> {
+  async fail(
+    jobId: string,
+    error: Error,
+    retry: boolean = true,
+  ): Promise<void> {
     if (!this.pool) {
       throw new Error("Not connected. Call connect() first.");
     }

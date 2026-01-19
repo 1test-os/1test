@@ -14,7 +14,7 @@ import {
   createTestBuilder,
   Json,
   Frequency,
-  Wait,
+  WaitDuration,
   Assert,
   target,
 } from "./index";
@@ -83,7 +83,7 @@ const userJourney = createTestBuilder({
       "/api/v1/users/",
     ),
   ])
-  .wait("pause", Wait.seconds(2))
+  .wait("pause", WaitDuration.seconds(2))
   .request("get_user", {
     method: GET,
     base: target("api-service"),
@@ -173,7 +173,7 @@ const orderWorkflow = createTestBuilder({
     Assert(state["confirm_order"].body["status"]).equals("confirmed"),
     Assert(state["confirm_order"].body["confirmed_at"]).not.isNull(),
   ])
-  .wait("processing_time", Wait.seconds(5))
+  .wait("processing_time", WaitDuration.seconds(5))
   .request("check_order", {
     method: GET,
     base: target("api-service"),

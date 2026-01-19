@@ -1,73 +1,53 @@
-import { loadState, resolveEnvironment } from "../core/state.js";
-import { createSdkClients } from "../core/sdk.js";
+import { loadState, resolveEnvironment } from "../../core/state.js";
+import { createSdkClients } from "../../core/sdk.js";
 
 export interface RunOptions {
-  planId?: string;
-  planName?: string;
+  plan: string;
+  env: string;
   wait?: boolean;
-  env?: string;
-  targetEnv?: string;
 }
 
 /**
- * Trigger a plan run on the runner
+ * Trigger a plan run on the hub
  */
 export async function executeRun(options: RunOptions): Promise<void> {
   try {
-    // TODO: remove this. Users shoud be able to execute all plans if they want.
-
-    if (!options.planId && !options.planName) {
-      console.error("Error: Either --plan-id or --plan-name must be provided");
-      process.exit(1);
-    }
-
-    if (!options.targetEnv) {
-      console.error(
-        "Error: --target-env must be provided (e.g., staging, production)",
-      );
-      process.exit(1);
-    }
-
     // Load state
     const state = await loadState();
 
     if (!state.runner?.baseUrl) {
-      console.error("Error: Runner URL not configured.");
-      console.log("Configure with:");
-      console.log("  griffin runner set --base-url <url> --api-token <token>");
+      console.error("Error: Hub connection not configured.");
+      console.log("Connect with:");
+      console.log("  griffin hub connect --url <url> --token <token>");
       process.exit(1);
     }
 
-    // Create SDK clients (for status polling)
+    // Create SDK clients
     const { runsApi } = createSdkClients({
       baseUrl: state.runner.baseUrl,
       apiToken: state.runner.apiToken || undefined,
     });
 
-    // Resolve plan ID from name if needed
-    let planId = options.planId;
-    if (!planId && options.planName) {
-      // Resolve environment to search in
-      const envName = await resolveEnvironment(options.env);
-      const envPlans = state.plans[envName] || [];
+    // Resolve plan ID from name
+    const envName = await resolveEnvironment(options.env);
+    const envPlans = state.plans[envName] || [];
 
-      const stateEntry = envPlans.find((p) => p.planName === options.planName);
+    const stateEntry = envPlans.find((p) => p.planName === options.plan);
 
-      if (!stateEntry) {
-        console.error(`Error: Plan "${options.planName}" not found in state`);
-        console.error("Run 'griffin apply' to sync your plans first");
-        process.exit(1);
-      }
-
-      planId = stateEntry.planId;
+    if (!stateEntry) {
+      console.error(`Error: Plan "${options.plan}" not found in state`);
+      console.error("Run 'griffin hub apply' to sync your plans first");
+      process.exit(1);
     }
 
-    // Trigger the run with environment
-    console.log(`Triggering run for plan: ${planId}`);
-    console.log(`Target environment: ${options.targetEnv}`);
+    const planId = stateEntry.planId;
 
-    const response = await runsApi.runsTriggerPlanIdPost(planId!, {
-      environment: options.targetEnv,
+    // Trigger the run with environment
+    console.log(`Triggering run for plan: ${options.plan}`);
+    console.log(`Target environment: ${options.env}`);
+
+    const response = await runsApi.runsTriggerPlanIdPost(planId, {
+      environment: options.env,
     });
     console.log(`Run ID: ${response.data.data.id}`);
     console.log(`Status: ${response.data.data.status}`);
@@ -120,7 +100,7 @@ export async function executeRun(options: RunOptions): Promise<void> {
       }
     } else {
       console.log("");
-      console.log("Run started. Use 'griffin status' to check progress.");
+      console.log("Run started. Use 'griffin hub runs' to check progress.");
     }
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);

@@ -1,4 +1,4 @@
-import type { TestPlanV1 } from "griffin-plan-executor";
+import type { TestPlanV1 } from "griffin/types";
 
 /**
  * NOTE: This is duplicated from griffin-hub to avoid cross-dependencies.

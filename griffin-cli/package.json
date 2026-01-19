@@ -25,6 +25,7 @@
   "dependencies": {
     "commander": "^12.1.0",
     "glob": "^11.0.0",
+    "griffin": "file:../griffin-ts",
     "griffin-hub-sdk": "file:../griffin-hub-sdk",
     "griffin-plan-executor": "file:../griffin-plan-executor",
     "typebox": "^1.0.78"

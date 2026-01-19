@@ -16,8 +16,14 @@ export const PlanStateEntrySchema = Type.Object({
 
 export type PlanStateEntry = Static<typeof PlanStateEntrySchema>;
 
-export const EnvironmentConfigSchema = Type.Object({
+// v2 schema (for migration)
+export const EnvironmentConfigSchemaV2 = Type.Object({
   baseUrl: Type.String(),
+});
+
+// v3 schema (current)
+export const EnvironmentConfigSchema = Type.Object({
+  targets: Type.Record(Type.String(), Type.String()),
 });
 
 export type EnvironmentConfig = Static<typeof EnvironmentConfigSchema>;
@@ -36,8 +42,9 @@ export const DiscoveryConfigSchema = Type.Object({
 
 export type DiscoveryConfig = Static<typeof DiscoveryConfigSchema>;
 
+// v3 schema (current)
 export const StateFileSchema = Type.Object({
-  stateVersion: Type.Literal(2),
+  stateVersion: Type.Literal(1),
   projectId: Type.String(),
 
   // Environment configuration
@@ -61,7 +68,7 @@ export type StateFile = Static<typeof StateFileSchema>;
  */
 export function createEmptyState(projectId: string): StateFile {
   return {
-    stateVersion: 2,
+    stateVersion: 1,
     projectId,
     environments: {},
     plans: {},
@@ -73,13 +80,13 @@ export function createEmptyState(projectId: string): StateFile {
  */
 export function createStateWithDefaultEnv(
   projectId: string,
-  baseUrl: string = "http://localhost:3000",
+  defaultTarget: string = "http://localhost:3000",
 ): StateFile {
   return {
-    stateVersion: 2,
+    stateVersion: 1,
     projectId,
     environments: {
-      local: { baseUrl },
+      local: { targets: { default: defaultTarget } },
     },
     defaultEnvironment: "local",
     plans: {

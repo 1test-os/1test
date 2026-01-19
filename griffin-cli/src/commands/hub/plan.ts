@@ -1,7 +1,7 @@
-import { loadState, resolveEnvironment } from "../core/state.js";
-import { discoverPlans, formatDiscoveryErrors } from "../core/discovery.js";
-import { createSdkClients } from "../core/sdk.js";
-import { computeDiff, formatDiff, formatDiffJson } from "../core/diff.js";
+import { loadState, resolveEnvironment } from "../../core/state.js";
+import { discoverPlans, formatDiscoveryErrors } from "../../core/discovery.js";
+import { createSdkClients } from "../../core/sdk.js";
+import { computeDiff, formatDiff, formatDiffJson } from "../../core/diff.js";
 
 export interface PlanOptions {
   json?: boolean;
@@ -20,9 +20,9 @@ export async function executePlan(options: PlanOptions): Promise<void> {
     const envName = await resolveEnvironment(options.env);
 
     if (!state.runner?.baseUrl) {
-      console.error("Error: Runner URL not configured.");
-      console.log("Configure with:");
-      console.log("  griffin runner set --base-url <url> --api-token <token>");
+      console.error("Error: Hub connection not configured.");
+      console.log("Connect with:");
+      console.log("  griffin hub connect --url <url> --token <token>");
       process.exit(1);
     }
 

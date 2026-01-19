@@ -1,16 +1,20 @@
-import type {
-  TestPlan,
-  Endpoint as EndpointType,
-  WaitNode as WaitNodeType,
-  AssertionNode as AssertionNodeType,
+import {
+  TestPlanV1,
+  Node,
   Edge,
+  Frequency,
   HttpMethod,
   ResponseFormat,
-  SerializedAssertion,
-  Frequency,
-  Node,
-} from "./types";
+  Endpoint,
+  NodeType,
+  Wait,
+  Assertions,
+  TEST_PLAN_VERSION,
+  JSONAssertion,
+} from "./schema.js";
 import { type START as StartType, type END as EndType } from "./constants";
+
+type RawPlan = Omit<TestPlanV1, "id" | "environment">;
 
 /**
  * A node definition without the id field.
@@ -91,7 +95,7 @@ export interface TestBuilder<
    */
   build: [Exclude<NodeName, HasOutput>] extends [never]
     ? [Exclude<NodeName, HasInput>] extends [never]
-      ? () => TestPlan
+      ? () => TestPlanV1
       : {
           error: "Some nodes have no incoming edges";
           unconnected: Exclude<NodeName, HasInput>;
@@ -158,9 +162,10 @@ class TestBuilderImpl<
     const nodes = this.nodes;
     const edges = this.edges;
 
-    const buildFn = (): TestPlan => {
+    const buildFn = (): RawPlan => {
       return {
         name,
+        version: TEST_PLAN_VERSION,
         frequency,
         locations,
         nodes,
@@ -210,12 +215,22 @@ export function createGraphBuilder(config: {
 
 /**
  * Configuration for an Endpoint node
+ * Accepts DSL-friendly literal types which are converted to schema enums internally
  */
 export interface EndpointConfig {
-  method: HttpMethod;
+  method:
+    | "GET"
+    | "POST"
+    | "PUT"
+    | "DELETE"
+    | "PATCH"
+    | "HEAD"
+    | "OPTIONS"
+    | "CONNECT"
+    | "TRACE";
   path: string;
-  base: EndpointType["base"];
-  response_format: ResponseFormat;
+  base: Endpoint["base"];
+  response_format: "JSON" | "XML" | "TEXT";
   headers?: Record<string, any>;
   body?: any;
 }
@@ -238,13 +253,13 @@ export interface EndpointConfig {
  * }));
  * ```
  */
-export function Endpoint(config: EndpointConfig): Omit<EndpointType, "id"> {
+export function Endpoint(config: EndpointConfig): Omit<Endpoint, "id"> {
   return {
-    type: "endpoint" as const,
-    method: config.method,
+    type: NodeType.ENDPOINT,
+    method: config.method as HttpMethod,
     path: config.path,
     base: config.base,
-    response_format: config.response_format,
+    response_format: config.response_format as ResponseFormat,
     headers: config.headers,
     body: config.body,
   };
@@ -280,16 +295,16 @@ function toMilliseconds(duration: WaitDuration): number {
  *
  * @example
  * ```typescript
- * import { Wait } from './index';
+ * import { Wait, WaitDuration } from './index';
  *
- * builder.addNode("pause", WaitNode(Wait.seconds(2)));
+ * builder.addNode("pause", Wait(WaitDuration.seconds(2)));
  * // or with raw milliseconds:
- * builder.addNode("pause", WaitNode(2000));
+ * builder.addNode("pause", Wait(2000));
  * ```
  */
-export function WaitNode(duration: WaitDuration): Omit<WaitNodeType, "id"> {
+export function Wait(duration: WaitDuration): Omit<Wait, "id"> {
   return {
-    type: "wait" as const,
+    type: NodeType.WAIT,
     duration_ms: toMilliseconds(duration),
   };
 }
@@ -310,11 +325,12 @@ export function WaitNode(duration: WaitDuration): Omit<WaitNodeType, "id"> {
  * ]));
  * ```
  */
-export function Assertion(
-  assertions: SerializedAssertion[],
-): Omit<AssertionNodeType, "id"> {
+export function Assertion(assertions: JSONAssertion[]): Omit<Assertions, "id"> {
   return {
-    type: "assertion" as const,
-    assertions,
+    type: NodeType.ASSERTION,
+    assertions: assertions.map((assertion) => ({
+      assertionType: ResponseFormat.JSON,
+      ...assertion,
+    })),
   };
 }

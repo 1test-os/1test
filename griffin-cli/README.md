@@ -1,16 +1,16 @@
 # Griffin CLI
 
-Terraform-like CLI for managing monitoring tests as code.
+Command-line interface for managing API monitoring tests as code.
 
 ## Overview
 
-Griffin CLI enables monitoring-as-code by syncing local test plan files to a Griffin runner. It provides a declarative workflow similar to Terraform:
+Griffin CLI enables monitoring-as-code with support for both local test execution and hub-based orchestration. It provides a declarative workflow:
 
 1. Write test plans in TypeScript/JavaScript
-2. Validate plans locally
-3. Preview changes with `griffin plan`
-4. Apply changes with `griffin apply`
-5. Monitor execution with `griffin status`
+2. Run tests locally against configured targets
+3. Preview changes with `griffin hub plan`
+4. Apply changes to hub with `griffin hub apply`
+5. Monitor execution with `griffin hub runs`
 
 ## Installation
 
@@ -23,135 +23,100 @@ npm install -g griffin-cli
 ### 1. Initialize
 
 ```bash
-griffin init --runner-url http://localhost:3000
+griffin init
 ```
 
-This creates:
+This creates `.griffin/state.json` which tracks:
 
-- `.griffin/state.json` - tracks synced plans and project ID
-- `.griffinrc.json` - project configuration
+- Project ID (auto-detected from package.json or directory name)
+- Environment configurations with their targets
+- Synced plan state
+- Hub connection settings (optional)
 
-The project ID is auto-detected from `package.json` name or directory name. Override with `--project <name>`.
+Override project ID with `--project <name>`.
 
-### 2. Create Test Plans
+### 2. Configure Targets
 
-Create a file `api-health.griffin.ts`:
-
-```typescript
-import {
-  TestPlanV1,
-  HttpMethod,
-  ResponseFormat,
-  NodeType,
-  FrequencyUnit,
-} from "griffin-plan-executor";
-
-export const healthCheck: TestPlanV1 = {
-  id: "api-health-check",
-  name: "API Health Check",
-  version: "1.0",
-  endpoint_host: "https://api.example.com",
-  frequency: {
-    every: 5,
-    unit: FrequencyUnit.MINUTE,
-  },
-  nodes: [
-    {
-      id: "health-request",
-      data: {
-        type: NodeType.ENDPOINT,
-        method: HttpMethod.GET,
-        path: "/health",
-        response_format: ResponseFormat.JSON,
-      },
-    },
-    {
-      id: "check-status",
-      data: {
-        type: NodeType.ASSERTION,
-        assertions: [
-          {
-            path: ["status"],
-            predicate: {
-              expected: "ok",
-              operator: 0, // EQUAL
-            },
-          },
-        ],
-      },
-    },
-  ],
-  edges: [{ from: "health-request", to: "check-status" }],
-};
-```
-
-### 3. Validate Plans
+Add targets to your local environment:
 
 ```bash
-griffin validate
+griffin local config add-target --env local --key api --url http://localhost:3000
 ```
 
-Checks that all plan files are valid without syncing.
-
-### 4. Preview Changes
+View configured environments:
 
 ```bash
-griffin plan
+griffin local config list
 ```
 
-Shows what will be created, updated, or deleted.
+### 3. Create Test Plans
 
-### 5. Apply Changes
+Create test files in `__griffin__/` directories. These files export test plans that can be run locally or synced to the hub.
+
+### 4. Run Tests Locally
 
 ```bash
-griffin apply
+griffin local run --env local
 ```
 
-Syncs plans to the runner. Use `--auto-approve` to skip confirmation.
+Executes tests locally against configured targets.
 
-### 6. Check Status
+### 5. Connect to Hub (Optional)
 
 ```bash
-griffin status
+griffin hub connect --url https://hub.example.com --token <token>
 ```
 
-Shows recent run results.
-
-### 7. Trigger Manual Run
+### 6. Preview Hub Changes
 
 ```bash
-griffin run --plan-name "API Health Check"
+griffin hub plan
 ```
 
-Triggers a plan execution. Use `--wait` to block until complete.
+Shows what will be created, updated, or deleted on the hub.
+
+### 7. Apply to Hub
+
+```bash
+griffin hub apply
+```
+
+Syncs plans to the hub.
+
+### 8. Trigger Hub Run
+
+```bash
+griffin hub run --plan <name> --env production
+```
+
+Triggers a plan execution on the hub.
 
 ## Commands
 
-### `griffin init`
+Commands are organized into three groups:
+
+- **Top-level**: Project initialization and utilities
+- **local**: Local test execution and configuration
+- **hub**: Hub operations (plan sync, remote execution)
+
+### Top-Level Commands
+
+#### `griffin init`
 
 Initialize Griffin in the current directory.
 
 **Options:**
 
-- `--runner-url <url>` - Runner base URL (required)
-- `--api-token <token>` - API authentication token
 - `--project <name>` - Project ID (defaults to package.json name or directory name)
 
 **Example:**
 
 ```bash
-griffin init --runner-url https://runner.example.com --api-token abc123
-griffin init --runner-url http://localhost:3000 --project my-service
+griffin init
+griffin init --project my-service
 ```
 
-**Project Detection:**
-Griffin auto-detects the project ID by:
-
-1. Looking for `package.json` and using the `name` field
-2. Falling back to the current directory name
-3. Using the `--project` flag if provided
-
-### `griffin validate`
+#### `griffin validate`
 
 Validate test plan files without syncing.
 
@@ -161,19 +126,146 @@ Validate test plan files without syncing.
 griffin validate
 ```
 
-### `griffin plan`
+#### `griffin generate-key`
 
-Show what changes would be applied.
+Generate a cryptographically secure API key for authentication.
+
+**Example:**
+
+```bash
+griffin generate-key
+```
+
+### Local Commands
+
+#### `griffin local run`
+
+Run tests locally against configured targets.
 
 **Options:**
 
+- `--env <name>` - Environment to run against (uses default if not specified)
+
+**Example:**
+
+```bash
+griffin local run
+griffin local run --env staging
+```
+
+#### `griffin local config list`
+
+List all local environments and their targets.
+
+**Example:**
+
+```bash
+griffin local config list
+```
+
+#### `griffin local config add-target`
+
+Add a target to a local environment.
+
+**Options:**
+
+- `--env <name>` - Environment name (required)
+- `--key <key>` - Target key (required)
+- `--url <url>` - Target URL (required)
+
+**Example:**
+
+```bash
+griffin local config add-target --env local --key api --url http://localhost:3000
+griffin local config add-target --env staging --key billing --url http://localhost:3001
+```
+
+#### `griffin local config remove-target`
+
+Remove a target from a local environment.
+
+**Options:**
+
+- `--env <name>` - Environment name (required)
+- `--key <key>` - Target key (required)
+
+**Example:**
+
+```bash
+griffin local config remove-target --env local --key api
+```
+
+#### `griffin local config set-default-env`
+
+Set the default environment for local runs.
+
+**Options:**
+
+- `--env <name>` - Environment name (required)
+
+**Example:**
+
+```bash
+griffin local config set-default-env --env local
+```
+
+### Hub Commands
+
+#### `griffin hub connect`
+
+Configure hub connection settings.
+
+**Options:**
+
+- `--url <url>` - Hub URL (required)
+- `--token <token>` - API authentication token
+
+**Example:**
+
+```bash
+griffin hub connect --url https://hub.example.com --token abc123
+```
+
+#### `griffin hub status`
+
+Show hub connection status.
+
+**Example:**
+
+```bash
+griffin hub status
+```
+
+#### `griffin hub runs`
+
+Show recent runs from the hub.
+
+**Options:**
+
+- `--plan <name>` - Filter by plan name
+- `--limit <number>` - Number of runs to show (default: 10)
+
+**Example:**
+
+```bash
+griffin hub runs
+griffin hub runs --plan health-check --limit 5
+```
+
+#### `griffin hub plan`
+
+Show what changes would be applied to the hub.
+
+**Options:**
+
+- `--env <name>` - Environment to plan for (uses default if not specified)
 - `--json` - Output in JSON format
 
 **Example:**
 
 ```bash
-griffin plan
-griffin plan --json
+griffin hub plan
+griffin hub plan --env production --json
 ```
 
 **Exit codes:**
@@ -182,111 +274,158 @@ griffin plan --json
 - `1` - Error
 - `2` - Changes pending
 
-### `griffin apply`
+#### `griffin hub apply`
 
-Apply changes to the runner.
+Apply changes to the hub.
 
 **Options:**
 
+- `--env <name>` - Environment to apply to (uses default if not specified)
 - `--auto-approve` - Skip confirmation prompt
 - `--dry-run` - Show what would be done without making changes
 
 **Example:**
 
 ```bash
-griffin apply
-griffin apply --auto-approve
-griffin apply --dry-run
+griffin hub apply
+griffin hub apply --env production --auto-approve
+griffin hub apply --dry-run
 ```
 
-### `griffin status`
+#### `griffin hub run`
 
-Show runner status and recent runs.
+Trigger a plan run on the hub.
 
 **Options:**
 
-- `--plan-id <id>` - Filter by plan ID
-- `--limit <number>` - Number of runs to show (default: 10)
-
-**Example:**
-
-```bash
-griffin status
-griffin status --plan-id api-health-check --limit 5
-```
-
-### `griffin run`
-
-Trigger a plan run on the runner.
-
-**Options:**
-
-- `--plan-id <id>` - Plan ID to run
-- `--plan-name <name>` - Plan name to run
+- `--plan <name>` - Plan name to run (required)
+- `--env <name>` - Target environment (required)
 - `--wait` - Wait for run to complete
 
 **Example:**
 
 ```bash
-griffin run --plan-name "API Health Check"
-griffin run --plan-id api-health-check --wait
+griffin hub run --plan health-check --env production
+griffin hub run --plan health-check --env staging --wait
+```
+
+#### `griffin hub config list`
+
+List all hub target configurations.
+
+**Options:**
+
+- `--org <id>` - Filter by organization ID
+- `--env <name>` - Filter by environment name
+
+**Example:**
+
+```bash
+griffin hub config list
+griffin hub config list --org acme --env production
+```
+
+#### `griffin hub config add-target`
+
+Add a target to hub configuration.
+
+**Options:**
+
+- `--org <id>` - Organization ID (required)
+- `--env <name>` - Environment name (required)
+- `--key <key>` - Target key (required)
+- `--url <url>` - Target URL (required)
+
+**Example:**
+
+```bash
+griffin hub config add-target --org acme --env production --key api --url https://api.example.com
+```
+
+#### `griffin hub config remove-target`
+
+Remove a target from hub configuration.
+
+**Options:**
+
+- `--org <id>` - Organization ID (required)
+- `--env <name>` - Environment name (required)
+- `--key <key>` - Target key (required)
+
+**Example:**
+
+```bash
+griffin hub config remove-target --org acme --env production --key api
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-- `GRIFFIN_RUNNER_URL` - Runner base URL
-- `GRIFFIN_API_TOKEN` - API authentication token
+- `GRIFFIN_ENV` - Default environment to use for commands
 
-### Config File (`.griffinrc.json`)
+### State File
+
+Griffin stores configuration in `.griffin/state.json`:
 
 ```json
 {
+  "stateVersion": 3,
+  "projectId": "my-project",
+  "environments": {
+    "local": {
+      "targets": {
+        "api": "http://localhost:3000",
+        "billing": "http://localhost:3001"
+      }
+    }
+  },
+  "defaultEnvironment": "local",
   "runner": {
-    "baseUrl": "http://localhost:3000",
-    "apiToken": "your-token"
+    "baseUrl": "https://hub.example.com",
+    "apiToken": "..."
   },
   "discovery": {
-    "pattern": "**/*.griffin.{ts,js}",
+    "pattern": "**/__griffin__/*.{ts,js}",
     "ignore": ["node_modules/**", "dist/**"]
+  },
+  "plans": {
+    "local": []
   }
 }
 ```
 
-### Precedence
+**Important:** Add `.griffin/` to `.gitignore` as it contains local state and potentially sensitive tokens.
 
-Configuration is resolved with the following precedence (highest to lowest):
+## Environments and Targets
 
-1. CLI flags
-2. Environment variables
-3. Config file (`.griffinrc.json`)
+Griffin uses environments to organize target configurations. Each environment contains multiple named targets (key-value pairs of target keys to URLs).
 
-## State Management
+**Local environments:**
 
-Griffin maintains a state file at `.griffin/state.json` that tracks:
+- Defined in `.griffin/state.json`
+- Used for local test execution
+- Managed via `griffin local config` commands
 
-- Project ID (set at init, stable across renames)
-- Which plans have been synced
-- Last applied hash (for change detection)
-- Remote plan IDs
+**Example workflow:**
 
-**Important:** Commit `.griffinrc.json` to version control, but add `.griffin/` to `.gitignore` for team workflows.
+```bash
+# Create local environment with targets
+griffin local config add-target --env local --key api --url http://localhost:3000
+griffin local config add-target --env local --key billing --url http://localhost:3001
 
-**Project Identity:**
+# Set default environment
+griffin local config set-default-env --env local
 
-- Project ID is captured during `griffin init`
-- Stays stable even if you rename the package or directory
-- Use `griffin rename --project <new-name>` (future feature) to change it
+# Run tests using default environment
+griffin local run
+```
 
 ## Test Plan Discovery
 
-By default, Griffin discovers test plans from files matching `**/*.griffin.{ts,js}`.
+By default, Griffin discovers test plans from files in `__griffin__/` directories matching `**/__griffin__/*.{ts,js}`.
 
-Plans must:
-
-- Export `TestPlanV1` objects (default or named exports)
-- Have all required fields (`id`, `name`, `version`, `endpoint_host`, `nodes`, `edges`)
+Test files should be TypeScript or JavaScript files that export test plan objects.
 
 ## Diff Rules
 
@@ -299,16 +438,20 @@ Griffin computes changes using:
 
 Change detection uses a SHA-256 hash of the normalized plan payload.
 
-## API Compatibility
+## Hub API Compatibility
 
-Griffin CLI is compatible with `griffin-runner` API v1.
+Griffin CLI is compatible with Griffin Hub API v1.
 
 Required endpoints:
 
-- `POST /plan/plan` - Create/update plan
-- `GET /runs/runs` - List runs
-- `GET /runs/runs/:id` - Get run details
-- `POST /runs/plan/:id/run` - Trigger run
+- `POST /plan` - Create/update plan
+- `GET /plan` - List plans
+- `GET /runs` - List runs
+- `GET /runs/:id` - Get run details
+- `POST /runs/trigger/:id` - Trigger run
+- `GET /config` - List configurations
+- `PUT /config/:org/:env/targets/:key` - Set target
+- `DELETE /config/:org/:env/targets/:key` - Delete target
 
 ## Development
 
@@ -331,25 +474,33 @@ npm run dev -- validate
 ```
 griffin-cli/
 ├── src/
-│   ├── commands/         # Command implementations
+│   ├── commands/           # Command implementations
+│   │   ├── local/          # Local execution commands
+│   │   │   ├── run.ts
+│   │   │   └── config.ts
+│   │   ├── hub/            # Hub operation commands
+│   │   │   ├── connect.ts
+│   │   │   ├── status.ts
+│   │   │   ├── runs.ts
+│   │   │   ├── plan.ts
+│   │   │   ├── apply.ts
+│   │   │   ├── run.ts
+│   │   │   └── config.ts
 │   │   ├── init.ts
 │   │   ├── validate.ts
-│   │   ├── plan.ts
-│   │   ├── apply.ts
-│   │   ├── status.ts
-│   │   └── run.ts
-│   ├── core/            # Core logic
-│   │   ├── api.ts       # Runner API client
-│   │   ├── apply.ts     # Apply engine
-│   │   ├── config.ts    # Config management
-│   │   ├── diff.ts      # Diff computation
-│   │   ├── discovery.ts # Plan discovery
-│   │   └── state.ts     # State management
-│   ├── schemas/         # Type definitions
-│   │   ├── payload.ts   # Plan payload schemas
-│   │   └── state.ts     # State file schemas
-│   ├── cli-new.ts       # CLI entry point
-│   └── index.ts         # Public API exports
+│   │   └── generate-key.ts
+│   ├── core/              # Core logic
+│   │   ├── sdk.ts         # Hub SDK client
+│   │   ├── apply.ts       # Apply engine
+│   │   ├── diff.ts        # Diff computation
+│   │   ├── discovery.ts   # Plan discovery
+│   │   ├── state.ts       # State management
+│   │   └── project.ts     # Project detection
+│   ├── schemas/           # Type definitions
+│   │   ├── payload.ts     # Plan payload schemas
+│   │   └── state.ts       # State file schemas
+│   ├── cli.ts             # CLI entry point
+│   └── index.ts           # Public API exports
 └── package.json
 ```
 

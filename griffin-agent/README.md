@@ -5,6 +5,7 @@ Execution agent for distributed Griffin test execution.
 ## Overview
 
 The Griffin Agent is a worker process that:
+
 - Registers with the Griffin Hub
 - Polls a job queue for execution tasks
 - Executes test plans using `griffin-plan-executor`
@@ -79,39 +80,39 @@ The agent communicates with the Hub via HTTP API:
 
 ### Required Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `AGENT_LOCATION` | Location identifier for this agent | `us-east-1`, `eu-west-1`, `on-prem` |
-| `HUB_URL` | Griffin Hub API base URL | `https://griffin-hub.example.com` |
+| Variable         | Description                              | Example                                    |
+| ---------------- | ---------------------------------------- | ------------------------------------------ |
+| `AGENT_LOCATION` | Location identifier for this agent       | `us-east-1`, `eu-west-1`, `on-prem`        |
+| `HUB_URL`        | Griffin Hub API base URL                 | `https://griffin-hub.example.com`          |
 | `POSTGRESQL_URL` | PostgreSQL connection string (for queue) | `postgresql://user:pass@localhost/griffin` |
 
 ### Optional Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `HUB_API_KEY` | - | Optional API key for Hub authentication |
-| `AGENT_METADATA` | - | Optional JSON metadata for agent display/filtering |
-| `QUEUE_BACKEND` | `postgres` | Queue backend (`postgres`, `sqs`, `redis`) |
-| `QUEUE_NAME` | `plan-executions` | Queue name to consume from |
-| `QUEUE_POLL_INTERVAL` | `1000` | Initial poll interval (ms) |
-| `QUEUE_MAX_POLL_INTERVAL` | `30000` | Max poll interval with backoff (ms) |
-| `HEARTBEAT_ENABLED` | `true` | Enable heartbeat loop |
-| `HEARTBEAT_INTERVAL_SECONDS` | `30` | Heartbeat interval (seconds) |
-| `PLAN_EXECUTION_TIMEOUT` | `30000` | HTTP request timeout for plan execution (ms) |
+| Variable                     | Default           | Description                                        |
+| ---------------------------- | ----------------- | -------------------------------------------------- |
+| `HUB_API_KEY`                | -                 | Optional API key for Hub authentication            |
+| `AGENT_METADATA`             | -                 | Optional JSON metadata for agent display/filtering |
+| `QUEUE_BACKEND`              | `postgres`        | Queue backend (`postgres`, `sqs`, `redis`)         |
+| `QUEUE_NAME`                 | `plan-executions` | Queue name to consume from                         |
+| `QUEUE_POLL_INTERVAL`        | `1000`            | Initial poll interval (ms)                         |
+| `QUEUE_MAX_POLL_INTERVAL`    | `30000`           | Max poll interval with backoff (ms)                |
+| `HEARTBEAT_ENABLED`          | `true`            | Enable heartbeat loop                              |
+| `HEARTBEAT_INTERVAL_SECONDS` | `30`              | Heartbeat interval (seconds)                       |
+| `PLAN_EXECUTION_TIMEOUT`     | `30000`           | HTTP request timeout for plan execution (ms)       |
 
 ### Secret Provider Configuration
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SECRET_PROVIDERS` | `env` | Comma-separated list of providers (`env,aws,vault`) |
-| `SECRET_ENV_PREFIX` | - | Optional prefix for env var secrets |
-| `AWS_SECRETS_REGION` | - | AWS region for Secrets Manager |
-| `AWS_SECRETS_PREFIX` | - | Optional prefix for AWS secrets |
-| `VAULT_ADDR` | - | HashiCorp Vault address |
-| `VAULT_TOKEN` | - | Vault authentication token |
-| `VAULT_NAMESPACE` | - | Vault namespace |
-| `VAULT_KV_VERSION` | `2` | Vault KV version (1 or 2) |
-| `VAULT_PREFIX` | - | Optional prefix for Vault secrets |
+| Variable             | Default | Description                                         |
+| -------------------- | ------- | --------------------------------------------------- |
+| `SECRET_PROVIDERS`   | `env`   | Comma-separated list of providers (`env,aws,vault`) |
+| `SECRET_ENV_PREFIX`  | -       | Optional prefix for env var secrets                 |
+| `AWS_SECRETS_REGION` | -       | AWS region for Secrets Manager                      |
+| `AWS_SECRETS_PREFIX` | -       | Optional prefix for AWS secrets                     |
+| `VAULT_ADDR`         | -       | HashiCorp Vault address                             |
+| `VAULT_TOKEN`        | -       | Vault authentication token                          |
+| `VAULT_NAMESPACE`    | -       | Vault namespace                                     |
+| `VAULT_KV_VERSION`   | `2`     | Vault KV version (1 or 2)                           |
+| `VAULT_PREFIX`       | -       | Optional prefix for Vault secrets                   |
 
 ## Deployment
 
@@ -141,17 +142,19 @@ docker run -e AGENT_LOCATION=us-east-1 \
 {
   "family": "griffin-agent",
   "taskRoleArn": "arn:aws:iam::ACCOUNT:role/griffin-agent",
-  "containerDefinitions": [{
-    "name": "agent",
-    "image": "griffin-agent:latest",
-    "environment": [
-      { "name": "AGENT_LOCATION", "value": "us-east-1" },
-      { "name": "HUB_URL", "value": "https://hub.example.com" }
-    ],
-    "secrets": [
-      { "name": "POSTGRESQL_URL", "valueFrom": "arn:aws:secretsmanager:..." }
-    ]
-  }]
+  "containerDefinitions": [
+    {
+      "name": "agent",
+      "image": "griffin-agent:latest",
+      "environment": [
+        { "name": "AGENT_LOCATION", "value": "us-east-1" },
+        { "name": "HUB_URL", "value": "https://hub.example.com" }
+      ],
+      "secrets": [
+        { "name": "POSTGRESQL_URL", "valueFrom": "arn:aws:secretsmanager:..." }
+      ]
+    }
+  ]
 }
 ```
 
@@ -175,18 +178,18 @@ spec:
         location: us-east-1
     spec:
       containers:
-      - name: agent
-        image: griffin-agent:latest
-        env:
-        - name: AGENT_LOCATION
-          value: "us-east-1"
-        - name: HUB_URL
-          value: "https://griffin-hub.example.com"
-        - name: POSTGRESQL_URL
-          valueFrom:
-            secretKeyRef:
-              name: griffin-db
-              key: connection-string
+        - name: agent
+          image: griffin-agent:latest
+          env:
+            - name: AGENT_LOCATION
+              value: "us-east-1"
+            - name: HUB_URL
+              value: "https://griffin-hub.example.com"
+            - name: POSTGRESQL_URL
+              valueFrom:
+                secretKeyRef:
+                  name: griffin-db
+                  key: connection-string
 ```
 
 ## Development

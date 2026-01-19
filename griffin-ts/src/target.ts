@@ -6,7 +6,7 @@
  * without changing the test code.
  */
 
-import type { TargetRef } from "./types";
+import { TargetRef } from "./schema.js";
 
 /**
  * Create a target reference for endpoint base URLs.

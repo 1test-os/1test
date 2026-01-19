@@ -149,11 +149,16 @@ export class WorkerService {
       const targetResolver = async (
         targetKey: string,
       ): Promise<string | undefined> => {
-        const {data: {data: {baseUrl}}} = await this.configApi.configOrganizationIdEnvironmentTargetsTargetKeyGet(
-          plan.organization!,
-          data.environment,
-          targetKey,
-        );
+        const {
+          data: {
+            data: { baseUrl },
+          },
+        } =
+          await this.configApi.configOrganizationIdEnvironmentTargetsTargetKeyGet(
+            plan.organization!,
+            data.environment,
+            targetKey,
+          );
         return baseUrl;
       };
 

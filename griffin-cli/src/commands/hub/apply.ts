@@ -1,8 +1,8 @@
-import { loadState, resolveEnvironment } from "../core/state.js";
-import { discoverPlans, formatDiscoveryErrors } from "../core/discovery.js";
-import { computeDiff, formatDiff } from "../core/diff.js";
-import { applyDiff, formatApplyResult } from "../core/apply.js";
-import { createSdkClients } from "../core/sdk.js";
+import { loadState, resolveEnvironment } from "../../core/state.js";
+import { discoverPlans, formatDiscoveryErrors } from "../../core/discovery.js";
+import { computeDiff, formatDiff } from "../../core/diff.js";
+import { applyDiff, formatApplyResult } from "../../core/apply.js";
+import { createSdkClients } from "../../core/sdk.js";
 
 export interface ApplyOptions {
   autoApprove?: boolean;
@@ -11,7 +11,7 @@ export interface ApplyOptions {
 }
 
 /**
- * Apply changes to the runner
+ * Apply changes to the hub
  */
 export async function executeApply(options: ApplyOptions): Promise<void> {
   try {
@@ -23,9 +23,9 @@ export async function executeApply(options: ApplyOptions): Promise<void> {
 
     // Check if runner is configured
     if (!state.runner?.baseUrl) {
-      console.error("Error: Runner URL not configured.");
-      console.log("Configure with:");
-      console.log("  griffin runner set --base-url <url> --api-token <token>");
+      console.error("Error: Hub connection not configured.");
+      console.log("Connect with:");
+      console.log("  griffin hub connect --url <url> --token <token>");
       process.exit(1);
     }
 

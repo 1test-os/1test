@@ -1,18 +1,19 @@
-import type { TestPlan, Frequency } from "./types";
 import {
   Endpoint,
-  WaitNode,
-  Assertion as AssertionNode,
+  Wait,
+  Assertion,
   type EndpointConfig,
   type WaitDuration,
 } from "./builder";
 import { START, END } from "./constants";
-import type { Edge, Node } from "./types";
+import { TEST_PLAN_VERSION, Edge, Node, Frequency, TestPlanV1 } from "./schema";
 import {
   createStateProxy,
   type SerializedAssertion,
   type StateProxy,
 } from "./assertions";
+
+type RawPlan = Omit<TestPlanV1, "id" | "environment">;
 
 /**
  * Callback type for building assertions with type-safe state access
@@ -98,7 +99,7 @@ export interface SequentialTestBuilder<NodeNames extends string = never> {
    *
    * @returns The completed TestPlan
    */
-  build(): TestPlan;
+  build(): RawPlan;
 }
 
 /**
@@ -140,7 +141,7 @@ class SequentialTestBuilderImpl<
     name: Name,
     duration: WaitDuration,
   ): SequentialTestBuilder<NodeNames | Name> {
-    const node = WaitNode(duration);
+    const node = Wait(duration);
     this.nodes.push({ ...node, id: name } as Node);
     this.nodeNames.push(name);
     return this as unknown as SequentialTestBuilder<NodeNames | Name>;
@@ -153,13 +154,13 @@ class SequentialTestBuilderImpl<
     const serializedAssertions = callback(stateProxy);
 
     const nodeName = this.generateNodeName();
-    const node = AssertionNode(serializedAssertions);
+    const node = Assertion(serializedAssertions);
     this.nodes.push({ ...node, id: nodeName } as Node);
     this.nodeNames.push(nodeName);
     return this as unknown as SequentialTestBuilder<NodeNames>;
   }
 
-  build(): TestPlan {
+  build(): RawPlan {
     const { name, frequency, locations } = this.config;
     const edges: Edge[] = [];
 
@@ -169,6 +170,7 @@ class SequentialTestBuilderImpl<
         name,
         frequency,
         locations,
+        version: TEST_PLAN_VERSION,
         nodes: [],
         edges: [{ from: START, to: END }],
       };
@@ -190,6 +192,7 @@ class SequentialTestBuilderImpl<
 
     return {
       name,
+      version: TEST_PLAN_VERSION,
       frequency,
       locations,
       nodes: this.nodes,

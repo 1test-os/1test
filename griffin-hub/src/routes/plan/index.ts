@@ -1,4 +1,17 @@
-import { TestPlanV1Schema, type TestPlanV1 } from "griffin-plan-executor";
+import {
+  TestPlanV1Schema,
+  NodeSchema,
+  EdgeSchema,
+  FrequencySchema,
+  EndpointSchema,
+  WaitSchema,
+  AssertionSchema,
+  AssertionsSchema,
+  HttpMethodSchema,
+  ResponseFormatSchema,
+  BinaryPredicateOperatorSchema,
+} from "griffin/schema";
+import { TestPlanV1 } from "griffin/types";
 import { Type } from "typebox";
 import { FastifyTypeBox } from "../../types.js";
 import {
@@ -8,20 +21,6 @@ import {
   PaginationRequestOpts,
   SuccessResponseSchema,
 } from "../../schemas/shared.js";
-import {
-  FrequencySchema,
-  EndpointSchema,
-  WaitSchema,
-  AssertionsSchema,
-  HttpMethodSchema,
-  ResponseFormatSchema,
-  BinaryPredicateOperatorSchema,
-} from "griffin-plan-executor";
-import {
-  AssertionSchema,
-  EdgeSchema,
-  NodeSchema,
-} from "griffin-plan-executor/dist/schemas.js";
 
 export const CreatePlanEndpoint = {
   tags: ["plan"],

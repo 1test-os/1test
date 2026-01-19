@@ -1,23 +1,23 @@
-import { loadState } from "../core/state.js";
-import { createSdkClients } from "../core/sdk.js";
+import { loadState } from "../../core/state.js";
+import { createSdkClients } from "../../core/sdk.js";
 
-export interface StatusOptions {
-  planId?: string;
+export interface RunsOptions {
+  plan?: string;
   limit?: number;
 }
 
 /**
- * Show runner status and recent runs
+ * Show recent runs from the hub
  */
-export async function executeStatus(options: StatusOptions): Promise<void> {
+export async function executeRuns(options: RunsOptions): Promise<void> {
   try {
     // Load state
     const state = await loadState();
 
     if (!state.runner?.baseUrl) {
-      console.error("Error: Runner URL not configured.");
-      console.log("Configure with:");
-      console.log("  griffin runner set --base-url <url> --api-token <token>");
+      console.error("Error: Hub connection not configured.");
+      console.log("Connect with:");
+      console.log("  griffin hub connect --url <url> --token <token>");
       process.exit(1);
     }
 
@@ -27,12 +27,12 @@ export async function executeStatus(options: StatusOptions): Promise<void> {
       apiToken: state.runner.apiToken || undefined,
     });
 
-    console.log(`Runner: ${state.runner.baseUrl}`);
+    console.log(`Hub: ${state.runner.baseUrl}`);
     console.log("");
 
     // Get recent runs
     const limit = options.limit || 10;
-    const response = await runsApi.runsGet(options.planId, undefined, limit, 0);
+    const response = await runsApi.runsGet(options.plan, undefined, limit, 0);
     const runs = response.data as any;
 
     if (runs.total === 0) {

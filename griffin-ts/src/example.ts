@@ -11,13 +11,13 @@ import {
   POST,
   createGraphBuilder,
   Endpoint,
-  WaitNode,
+  Wait,
   Assertion,
   Json,
   START,
   END,
   Frequency,
-  Wait,
+  WaitDuration,
   target,
 } from "./index";
 
@@ -43,7 +43,7 @@ const plan = createGraphBuilder({
       path: "/api/v1/foo",
     }),
   )
-  .addNode("first_wait", WaitNode(Wait.minutes(1)))
+  .addNode("first_wait", Wait(WaitDuration.minutes(1)))
   // Note: Assertion nodes with the rich DSL are best used with the Sequential Builder
   // For graph builder, assertions can be manually constructed with SerializedAssertion format
   .addEdge(START, "create_foo")

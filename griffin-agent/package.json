@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "axios": "^1.7.0",
+    "griffin": "file:../griffin-ts",
     "griffin-hub-sdk": "file:../griffin-hub-sdk",
     "griffin-plan-executor": "file:../griffin-plan-executor",
     "pg": "^8.16.3",

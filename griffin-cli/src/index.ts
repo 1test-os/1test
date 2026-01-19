@@ -34,6 +34,11 @@ export {
   setDefaultEnvironment,
   resolveEnvironment,
   getEnvironment,
+  addTarget,
+  removeTarget,
+  getTargets,
+  resolveTarget,
+  listEnvironments,
 } from "./core/state.js";
 
 export { discoverPlans, formatDiscoveryErrors } from "./core/discovery.js";
@@ -49,13 +54,26 @@ export { detectProjectId } from "./core/project.js";
 // Export command executors (for programmatic use)
 export { executeInit } from "./commands/init.js";
 export { executeValidate } from "./commands/validate.js";
-export { executePlan } from "./commands/plan.js";
-export { executeApply } from "./commands/apply.js";
-export { executeStatus } from "./commands/status.js";
-export { executeRun } from "./commands/run-remote.js";
+export { executeGenerateKey } from "./commands/generate-key.js";
+
+// Local commands
+export { executeRunLocal } from "./commands/local/run.js";
 export {
-  executeEnvList,
-  executeEnvAdd,
-  executeEnvRemove,
-  executeEnvDefault,
-} from "./commands/env.js";
+  executeConfigList as executeLocalConfigList,
+  executeConfigAddTarget as executeLocalConfigAddTarget,
+  executeConfigRemoveTarget as executeLocalConfigRemoveTarget,
+  executeConfigSetDefaultEnv,
+} from "./commands/local/config.js";
+
+// Hub commands
+export { executeConnect } from "./commands/hub/connect.js";
+export { executeStatus } from "./commands/hub/status.js";
+export { executeRuns } from "./commands/hub/runs.js";
+export { executePlan } from "./commands/hub/plan.js";
+export { executeApply } from "./commands/hub/apply.js";
+export { executeRun } from "./commands/hub/run.js";
+export {
+  executeConfigList as executeHubConfigList,
+  executeConfigAddTarget as executeHubConfigAddTarget,
+  executeConfigRemoveTarget as executeHubConfigRemoveTarget,
+} from "./commands/hub/config.js";

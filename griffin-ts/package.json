@@ -4,6 +4,20 @@
   "description": "TypeScript DSL for defining griffin API tests",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema-exports.d.ts",
+      "default": "./dist/schema-exports.js"
+    },
+    "./types": {
+      "types": "./dist/type-exports.d.ts",
+      "default": "./dist/type-exports.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -23,6 +37,7 @@
     "vitest": "^4.0.17"
   },
   "dependencies": {
-    "ts-edge": "^1.0.4"
+    "ts-edge": "^1.0.4",
+    "typebox": "^1.0.78"
   }
 }
