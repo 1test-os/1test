@@ -1,5 +1,5 @@
 {
-  "name": "griffin-agent",
+  "name": "@griffin-app/griffin-agent",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",

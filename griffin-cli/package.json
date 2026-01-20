@@ -1,5 +1,5 @@
 {
-  "name": "griffin-cli",
+  "name": "@griffin-app/griffin-cli",
   "version": "1.0.0",
   "description": "CLI tool for running and managing griffin API tests",
   "type": "module",
