@@ -50,8 +50,6 @@
     "concurrently": "^9.0.0",
     "drizzle-kit": "^0.31.8",
     "fastify-tsconfig": "^2.0.0",
-    "griffin": "file:../griffin-ts",
-    "griffin-cli": "file:../griffin-cli",
     "typescript": "~5.6.3",
     "vitest": "^4.0.17"
   }
