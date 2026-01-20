@@ -17,7 +17,7 @@ import {
   WaitDuration,
   Assert,
   variable,
-} from "./index";
+} from "./index.js";
 
 // ============================================================================
 // Example 1: Simple health check with new assertion API

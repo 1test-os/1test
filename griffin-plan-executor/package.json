@@ -1,6 +1,6 @@
 {
-  "name": "griffin-plan-executor",
-  "version": "0.1.0",
+  "name": "@griffin-app/griffin-plan-executor",
+  "version": "0.1.6",
   "description": "Executor for griffin JSON test plans",
   "type": "module",
   "main": "dist/index.js",
@@ -21,8 +21,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@griffin-app/griffin-ts": "^0.1.5",
     "axios": "^1.13.2",
-    "griffin": "file:../griffin-ts",
     "ts-edge": "^1.0.4",
     "typebox": "^1.0.77"
   },

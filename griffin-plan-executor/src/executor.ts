@@ -6,11 +6,11 @@ import {
   Assertions,
   JSONAssertion,
   Assertion,
-} from "griffin/types";
+} from "@griffin-app/griffin-ts/types";
 
-import { HttpMethod, ResponseFormat, NodeType } from "griffin/schema";
+import { HttpMethod, ResponseFormat, NodeType } from "@griffin-app/griffin-ts/schema";
 
-import { UnaryPredicate, BinaryPredicateOperator } from "griffin";
+import { UnaryPredicate, BinaryPredicateOperator } from "@griffin-app/griffin-ts";
 
 import type {
   ExecutionOptions,

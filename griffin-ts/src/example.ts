@@ -19,7 +19,7 @@ import {
   Frequency,
   WaitDuration,
   variable,
-} from "./index";
+} from "./index.js";
 
 const plan = createGraphBuilder({
   name: "foo-bar-check",

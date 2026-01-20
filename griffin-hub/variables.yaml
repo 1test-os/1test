@@ -15,13 +15,13 @@
 
 environments:
   local:
-    sample-api: http://localhost:3000
+    griffin-hub: http://localhost:3000
     api-version: v1
 
   staging:
-    sample-api: https://staging.example.com
+    griffin-hub: https://staging.example.com
     api-version: v1
 
   production:
-    sample-api: https://api.example.com
+    griffin-hub: https://api.example.com
     api-version: v2

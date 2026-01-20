@@ -4,16 +4,16 @@ import {
   Assertion,
   type EndpointConfig,
   type WaitDuration,
-} from "./builder";
-import { START, END } from "./constants";
-import { TEST_PLAN_VERSION, Edge, Node, Frequency, TestPlanV1 } from "./schema";
+} from "./builder.js";
+import { START, END } from "./constants.js";
+import { TEST_PLAN_VERSION, Edge, Node, Frequency, TestPlanV1 } from "./schema.js";
 import {
   createStateProxy,
   type SerializedAssertion,
   type StateProxy,
-} from "./assertions";
+} from "./assertions.js";
 
-type RawPlan = Omit<TestPlanV1, "id" | "environment">;
+type RawPlan = Omit<TestPlanV1, "id" | "environment" | "organization" | "project">;
 
 /**
  * Callback type for building assertions with type-safe state access
@@ -115,7 +115,7 @@ class SequentialTestBuilderImpl<
   constructor(
     private config: {
       name: string;
-      frequency?: Frequency;
+      frequency: Frequency;
       locations?: string[];
     },
   ) {}
@@ -247,7 +247,7 @@ class SequentialTestBuilderImpl<
  */
 export function createTestBuilder(config: {
   name: string;
-  frequency?: Frequency;
+  frequency: Frequency;
   locations?: string[];
 }): SequentialTestBuilder {
   return new SequentialTestBuilderImpl(config);

@@ -7,7 +7,7 @@ import {
   TriggerType,
   type JobRun,
 } from "../../schemas/job-run.js";
-import type { TestPlanV1 } from "griffin/types";
+import type { TestPlanV1 } from "@griffin-app/griffin-ts/types";
 import { FastifyTypeBox } from "../../types.js";
 import {
   ErrorResponseOpts,
@@ -15,6 +15,8 @@ import {
   PaginationRequestOpts,
   SuccessResponseSchema,
 } from "../../schemas/shared.js";
+import { eq, and, desc } from "drizzle-orm";
+import { runsTable } from "../../storage/adapters/postgres/schema.js";
 
 // Query parameters for listing runs
 const ListRunsQuerySchema = Type.Object({
@@ -65,23 +67,24 @@ export default function (fastify: FastifyTypeBox) {
     async (request, reply) => {
       const { planId, status, limit = 50, offset = 0 } = request.query;
 
-      const jobRunRepo = fastify.repository.repository<JobRun>("job_runs");
+      // Build filter conditions
+      const conditions = [];
+      if (planId) conditions.push(eq(runsTable.planId, planId));
+      if (status) conditions.push(eq(runsTable.status, status));
 
-      // Build filter
-      const filter: any = {};
-      if (planId) filter.planId = planId;
-      if (status) filter.status = status;
+      const whereClause =
+        conditions.length > 0 ? and(...conditions) : undefined;
 
       // Get runs with pagination
-      const runs = await jobRunRepo.findMany({
-        filter,
-        sort: { field: "startedAt", order: "desc" },
+      const runs = await fastify.storage.runs.findMany({
+        where: whereClause,
+        orderBy: [desc(runsTable.startedAt)],
         limit,
         offset,
       });
 
       // Get total count
-      const total = await jobRunRepo.count(filter);
+      const total = await fastify.storage.runs.count(whereClause);
 
       return reply.send({
         data: runs,
@@ -115,9 +118,8 @@ export default function (fastify: FastifyTypeBox) {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const jobRunRepo = fastify.repository.repository<JobRun>("job_runs");
 
-      const jobRun = await jobRunRepo.findById(id);
+      const jobRun = await fastify.storage.runs.findById(id);
 
       if (!jobRun) {
         return reply.code(404).send({
@@ -158,16 +160,14 @@ export default function (fastify: FastifyTypeBox) {
       const { id } = request.params;
       const updates = request.body;
 
-      const jobRunRepo = fastify.repository.repository<JobRun>("job_runs");
-
-      const jobRun = await jobRunRepo.findById(id);
+      const jobRun = await fastify.storage.runs.findById(id);
       if (!jobRun) {
         return reply.code(404).send({
           error: `Job run not found: ${id}`,
         });
       }
 
-      const updatedJobRun = await jobRunRepo.update(id, updates);
+      const updatedJobRun = await fastify.storage.runs.update(id, updates);
 
       return reply.send({ data: updatedJobRun });
     },
@@ -196,12 +196,10 @@ export default function (fastify: FastifyTypeBox) {
     async (request, reply) => {
       const { planId } = request.params;
       const { environment } = request.body;
-      const planRepo = fastify.repository.repository<TestPlanV1>("plans");
-      const jobRunRepo = fastify.repository.repository<JobRun>("job_runs");
       const queue = fastify.jobQueue.queue("plan-executions");
 
       // Check if plan exists
-      const plan = await planRepo.findById(planId);
+      const plan = await fastify.storage.plans.findById(planId);
       if (!plan) {
         return reply.code(404).send({
           error: `Plan not found: ${planId}`,
@@ -214,7 +212,7 @@ export default function (fastify: FastifyTypeBox) {
       // TODO: Phase 2 - Resolve location from agent registry
       const location = "local";
 
-      const jobRun = await jobRunRepo.create({
+      const jobRun = await fastify.storage.runs.create({
         planId: plan.id,
         executionGroupId,
         location,

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { executePlanV1 } from "./executor.js";
 import { StubAdapter } from "./adapters/stub.js";
-import { NodeType, HttpMethod, ResponseFormat } from "griffin/schema";
-import { TestPlanV1 } from "griffin/types";
+import { NodeType, HttpMethod, ResponseFormat, FrequencyUnit } from "@griffin-app/griffin-ts/schema";
+import { TestPlanV1 } from "@griffin-app/griffin-ts/types";
 import { START, END, type ExecutionOptions } from "./types.js";
 import { LocalEventEmitter, type ExecutionEvent } from "./events";
 import { SecretProviderRegistry } from "./secrets/registry.js";
@@ -28,6 +28,9 @@ describe("executePlanV1", () => {
     it("should execute a simple GET request successfully", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-1",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Simple GET Test",
         environment: "default",
         version: "1.0",
@@ -81,6 +84,9 @@ describe("executePlanV1", () => {
         name: "POST Test",
         version: "1.0",
         environment: "default",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         nodes: [
           {
             id: "create-user",
@@ -134,6 +140,9 @@ describe("executePlanV1", () => {
         name: "JSON String Response Test",
         version: "1.0",
         environment: "default",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         nodes: [
           {
             id: "get-data",
@@ -177,6 +186,9 @@ describe("executePlanV1", () => {
         name: "BaseUrl Override Test",
         version: "1.0",
         environment: "default",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         nodes: [
           {
             id: "get-users",
@@ -218,6 +230,9 @@ describe("executePlanV1", () => {
     it("should handle PUT requests", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-5",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "PUT Test",
         version: "1.0",
         environment: "default",
@@ -265,6 +280,9 @@ describe("executePlanV1", () => {
     it("should handle DELETE requests", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-6",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "DELETE Test",
         version: "1.0",
         environment: "default",
@@ -308,6 +326,9 @@ describe("executePlanV1", () => {
     it("should handle PATCH requests", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-7",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "PATCH Test",
         version: "1.0",
         environment: "default",
@@ -353,6 +374,9 @@ describe("executePlanV1", () => {
     it("should execute two endpoints in sequence", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-8",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Sequential Test",
         version: "1.0",
         environment: "default",
@@ -421,6 +445,9 @@ describe("executePlanV1", () => {
     it("should execute a linear chain of multiple endpoints", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-9",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Multi-Step Linear Test",
         version: "1.0",
         environment: "default",
@@ -515,6 +542,9 @@ describe("executePlanV1", () => {
     it("should execute a wait node successfully", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-10",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Wait Test",
         version: "1.0",
         environment: "default",
@@ -552,6 +582,9 @@ describe("executePlanV1", () => {
     it("should execute endpoints with waits in between", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-11",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Endpoint-Wait-Endpoint Test",
         version: "1.0",
         environment: "default",
@@ -621,6 +654,9 @@ describe("executePlanV1", () => {
     it("should execute an assertion node (currently no-op)", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-12",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Assertion Test",
         version: "1.0",
         environment: "default",
@@ -677,6 +713,9 @@ describe("executePlanV1", () => {
     it("should handle failed HTTP requests gracefully", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-13",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Failed Request Test",
         version: "1.0",
         environment: "default",
@@ -717,6 +756,9 @@ describe("executePlanV1", () => {
     it("should handle disconnected nodes gracefully", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-14",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Disconnected Nodes Test",
         version: "1.0",
         environment: "default",
@@ -764,6 +806,9 @@ describe("executePlanV1", () => {
     it("should continue execution after a failed node", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-15",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Continue After Failure Test",
         version: "1.0",
         environment: "default",
@@ -820,6 +865,9 @@ describe("executePlanV1", () => {
     it("should store successful responses for downstream nodes", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-16",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Response Storage Test",
         version: "1.0",
         environment: "default",
@@ -885,6 +933,9 @@ describe("executePlanV1", () => {
     it("should not store failed responses", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-17",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Failed Response Not Stored Test",
         version: "1.0",
         environment: "default",
@@ -926,6 +977,9 @@ describe("executePlanV1", () => {
         name: "Timing Test",
         version: "1.0",
         environment: "default",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         nodes: [
           {
             id: "endpoint",
@@ -968,6 +1022,9 @@ describe("executePlanV1", () => {
     it("should track individual node durations", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-19",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Node Duration Test",
         version: "1.0",
         environment: "default",
@@ -1038,6 +1095,9 @@ describe("executePlanV1", () => {
     it("should handle empty plan (no nodes)", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-20",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Empty Plan Test",
         version: "1.0",
         environment: "default",
@@ -1061,6 +1121,9 @@ describe("executePlanV1", () => {
     it("should handle single node with no edges", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-21",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Single Node Test",
         version: "1.0",
         environment: "default",
@@ -1104,6 +1167,9 @@ describe("executePlanV1", () => {
     it("should handle complex response data types", async () => {
       const plan: TestPlanV1 = {
         id: "test-plan-22",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Complex Data Test",
         version: "1.0",
         environment: "default",
@@ -1171,6 +1237,9 @@ describe("executePlanV1", () => {
     it("should emit PLAN_START and PLAN_END events", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-1",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Event Test Plan",
         version: "1.0",
         environment: "default",
@@ -1234,6 +1303,9 @@ describe("executePlanV1", () => {
     it("should emit NODE_START and NODE_END events for each node", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-2",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Multi-Node Event Test",
         version: "1.0",
         environment: "default",
@@ -1319,6 +1391,9 @@ describe("executePlanV1", () => {
     it("should emit HTTP_REQUEST and HTTP_RESPONSE events for endpoint nodes", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-3",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "HTTP Event Test",
         version: "1.0",
         environment: "default",
@@ -1392,6 +1467,9 @@ describe("executePlanV1", () => {
     it("should emit WAIT_START event for wait nodes", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-4",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Wait Event Test",
         version: "1.0",
         environment: "default",
@@ -1432,6 +1510,9 @@ describe("executePlanV1", () => {
     it("should emit ERROR event on HTTP request failure", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-5",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Error Event Test",
         version: "1.0",
         environment: "default",
@@ -1473,6 +1554,9 @@ describe("executePlanV1", () => {
     it("should maintain monotonic sequence numbers", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-6",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Sequence Test",
         version: "1.0",
         environment: "default",
@@ -1527,6 +1611,9 @@ describe("executePlanV1", () => {
 
       const plan: TestPlanV1 = {
         id: "event-test-7",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Custom Execution ID Test",
         version: "1.0",
         environment: "default",
@@ -1572,6 +1659,9 @@ describe("executePlanV1", () => {
     it("should emit events in correct order", async () => {
       const plan: TestPlanV1 = {
         id: "event-test-8",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         name: "Event Order Test",
         version: "1.0",
         environment: "default",
@@ -1624,6 +1714,9 @@ describe("executePlanV1", () => {
         name: "Failed Request Event Test",
         version: "1.0",
         environment: "default",
+        organization: "test-org",
+        project: "test-project",
+        frequency: { every: 1, unit: FrequencyUnit.MINUTE },
         nodes: [
           {
             id: "failing-node",

@@ -10,8 +10,8 @@ import {
   HttpMethodSchema,
   ResponseFormatSchema,
   BinaryPredicateOperatorSchema,
-} from "griffin/schema";
-import { TestPlanV1 } from "griffin/types";
+} from "@griffin-app/griffin-ts/schema";
+import { TestPlanV1 } from "@griffin-app/griffin-ts/types";
 import { Type } from "typebox";
 import { FastifyTypeBox } from "../../types.js";
 import {
@@ -21,6 +21,8 @@ import {
   PaginationRequestOpts,
   SuccessResponseSchema,
 } from "../../schemas/shared.js";
+import { eq } from "drizzle-orm";
+import { plansTable } from "../../storage/adapters/postgres/schema.js";
 
 export const CreatePlanEndpoint = {
   tags: ["plan"],
@@ -93,8 +95,7 @@ export default function (fastify: FastifyTypeBox) {
       }
 
       // Store the plan using the repository
-      const planRepo = fastify.repository.repository<TestPlanV1>("plans");
-      const savedPlan = await planRepo.create(planData);
+      const savedPlan = await fastify.storage.plans.create(planData);
 
       return reply.code(201).send({ data: savedPlan });
     },
@@ -110,13 +111,14 @@ export default function (fastify: FastifyTypeBox) {
     async (request, reply) => {
       const { projectId, limit = 50, offset = 0 } = request.query;
 
-      const planRepo = fastify.repository.repository<TestPlanV1>("plans");
-      const plans = await planRepo.findMany({
-        filter: { project: projectId },
+      const plans = await fastify.storage.plans.findMany({
+        where: projectId ? eq(plansTable.project, projectId) : undefined,
         limit,
         offset,
       });
-      const total = await planRepo.count({ project: projectId });
+      const total = await fastify.storage.plans.count(
+        projectId ? eq(plansTable.project, projectId) : undefined,
+      );
       return reply.send({
         data: plans,
         total,

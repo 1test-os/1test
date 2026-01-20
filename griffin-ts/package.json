@@ -1,8 +1,9 @@
 {
-  "name": "griffin",
-  "version": "0.1.0",
+  "name": "@griffin-app/griffin-ts",
+  "version": "0.1.5",
   "description": "TypeScript DSL for defining griffin API tests",
   "main": "dist/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
@@ -37,7 +38,6 @@
     "vitest": "^4.0.17"
   },
   "dependencies": {
-    "ts-edge": "^1.0.4",
     "typebox": "^1.0.78"
   }
 }

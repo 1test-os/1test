@@ -43,6 +43,7 @@ export async function runTestFile(
       httpClient: new AxiosAdapter(),
       secretRegistry: secretRegistry,
     });
+    console.log(JSON.stringify(result, null, 2));
     return result;
   } catch (error) {
     const errors = Value.Errors(RawTestSchema, resolvedPlan);

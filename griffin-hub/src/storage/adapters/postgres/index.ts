@@ -1,82 +1,99 @@
+import { JobQueueBackend, JobQueue } from "../../ports.js";
+import { Storage } from "../../repositories.js";
 import {
-  RepositoryBackend,
-  JobQueueBackend,
-  Repository,
-  JobQueue,
-} from "../../ports.js";
-import { PostgresRepository } from "./repository.js";
+  PostgresPlansRepository,
+  PostgresRunsRepository,
+  PostgresAgentsRepository,
+} from "./repositories.js";
 import { PostgresJobQueue } from "./job-queue.js";
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
+import * as schema from "./schema.js";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 /**
- * PostgreSQL repository backend.
- *
- * TODO: Implement using 'pg' (node-postgres)
- *
- * Connection options to consider:
- * - Connection string from environment variable
- * - Pool configuration (max connections, idle timeout, etc.)
- * - SSL settings for production
- * - Statement timeout for safety
- *
- * You already have a Pool setup in griffin-runner-old/src/database.ts
- * that can be used as a reference.
+ * PostgreSQL Storage implementation using Drizzle ORM.
+ * Provides typed access to all repositories with transaction support.
  */
-export class PostgresRepositoryBackend implements RepositoryBackend {
+export class PostgresStorage implements Storage {
   private pool: Pool | null = null;
-  private repositories: Map<string, PostgresRepository<any>> = new Map();
+  private db: NodePgDatabase<typeof schema> | null = null;
+
+  public plans!: PostgresPlansRepository;
+  public runs!: PostgresRunsRepository;
+  public agents!: PostgresAgentsRepository;
 
   constructor(private connectionString: string) {}
 
-  repository<T extends { id: string }>(collection: string): Repository<T> {
-    if (!this.repositories.has(collection)) {
-      this.repositories.set(
-        collection,
-        new PostgresRepository<T>(this.pool, collection),
-      );
-    }
-    return this.repositories.get(collection)!;
-  }
-
   async connect(): Promise<void> {
-    throw new Error("PostgresRepositoryBackend.connect not yet implemented");
-    // TODO:
-    // const { Pool } = require('pg');
-    // this.pool = new Pool({ connectionString: this.connectionString });
-    // await this.pool.query('SELECT NOW()'); // Test connection
+    this.pool = new Pool({ connectionString: this.connectionString });
+    this.db = drizzle(this.pool, { schema });
+
+    // Test connection
+    await this.pool.query("SELECT NOW()");
+
+    // Run migrations
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const migrationsFolder = join(__dirname, "migrations");
+    await migrate(this.db, { migrationsFolder });
+
+    // Initialize repositories
+    this.plans = new PostgresPlansRepository(this.db);
+    this.runs = new PostgresRunsRepository(this.db);
+    this.agents = new PostgresAgentsRepository(this.db);
   }
 
   async disconnect(): Promise<void> {
-    throw new Error("PostgresRepositoryBackend.disconnect not yet implemented");
-    // TODO:
-    // if (this.pool) {
-    //   await this.pool.end();
-    // }
+    if (this.pool) {
+      await this.pool.end();
+      this.pool = null;
+      this.db = null;
+    }
   }
 
-  async transaction<R>(fn: (tx: RepositoryBackend) => Promise<R>): Promise<R> {
-    throw new Error(
-      "PostgresRepositoryBackend.transaction not yet implemented",
-    );
-    // TODO: Get a client from pool, BEGIN/COMMIT/ROLLBACK
-    // Create a transactional RepositoryBackend that uses the same client
-    // Pass it to fn()
-  }
-
-  async execute<T = unknown>(
-    query: string | Function,
-    params?: unknown[],
-  ): Promise<T[]> {
-    if (typeof query === "function") {
-      throw new Error(
-        "Postgres backend execute() requires a SQL string, not a function",
-      );
+  async transaction<R>(fn: (tx: Storage) => Promise<R>): Promise<R> {
+    if (!this.db) {
+      throw new Error("Database not initialized. Call connect() first.");
     }
 
-    // TODO: When pg pool is properly implemented, use it to execute the query
-    // const result = await this.pool.query(query, params);
-    // return result.rows as T[];
-    throw new Error("PostgresRepositoryBackend.execute not yet implemented");
+    return await this.db.transaction(async (tx) => {
+      // Create a transactional storage instance
+      const txStorage = new PostgresTransactionStorage(tx);
+      return await fn(txStorage);
+    });
+  }
+}
+
+/**
+ * Transaction-scoped PostgreSQL storage.
+ * Uses a single transaction context for all operations.
+ */
+class PostgresTransactionStorage implements Storage {
+  public plans: PostgresPlansRepository;
+  public runs: PostgresRunsRepository;
+  public agents: PostgresAgentsRepository;
+
+  constructor(private tx: NodePgDatabase<typeof schema>) {
+    this.plans = new PostgresPlansRepository(tx);
+    this.runs = new PostgresRunsRepository(tx);
+    this.agents = new PostgresAgentsRepository(tx);
+  }
+
+  async connect(): Promise<void> {
+    // No-op: already connected via transaction
+  }
+
+  async disconnect(): Promise<void> {
+    // No-op: transaction is managed by parent
+  }
+
+  async transaction<R>(fn: (tx: Storage) => Promise<R>): Promise<R> {
+    // Nested transactions not supported in this implementation
+    // Just execute the function with the current transaction context
+    return await fn(this);
   }
 }
 
@@ -93,31 +110,27 @@ export class PostgresRepositoryBackend implements RepositoryBackend {
  * - Statement timeout for safety
  */
 export class PostgresJobQueueBackend implements JobQueueBackend {
-  private pool: any; // TODO: Type this as Pool from 'pg'
+  private pool: Pool | null = null;
   private queues: Map<string, PostgresJobQueue<any>> = new Map();
 
   constructor(private connectionString: string) {}
 
   queue<T = any>(name: string = "default"): JobQueue<T> {
     if (!this.queues.has(name)) {
-      this.queues.set(name, new PostgresJobQueue<T>(this.pool, name));
+      this.queues.set(name, new PostgresJobQueue<T>(this.pool!, name));
     }
     return this.queues.get(name)!;
   }
 
   async connect(): Promise<void> {
-    throw new Error("PostgresJobQueueBackend.connect not yet implemented");
-    // TODO:
-    // const { Pool } = require('pg');
-    // this.pool = new Pool({ connectionString: this.connectionString });
-    // await this.pool.query('SELECT NOW()'); // Test connection
+    this.pool = new Pool({ connectionString: this.connectionString });
+    await this.pool.query("SELECT NOW()"); // Test connection
   }
 
   async disconnect(): Promise<void> {
-    throw new Error("PostgresJobQueueBackend.disconnect not yet implemented");
-    // TODO:
-    // if (this.pool) {
-    //   await this.pool.end();
-    // }
+    if (this.pool) {
+      await this.pool.end();
+      this.pool = null;
+    }
   }
 }

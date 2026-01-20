@@ -13,11 +13,11 @@ declare module "fastify" {
  * Depends on the storage plugin being loaded first.
  */
 const agentRegistryPlugin: FastifyPluginAsync = async (fastify) => {
-  const { config, repository } = fastify;
+  const { config, storage } = fastify;
 
   // Initialize the agent registry
   const agentRegistry = new AgentRegistry(
-    repository,
+    storage,
     config.agent.heartbeatTimeout,
   );
 

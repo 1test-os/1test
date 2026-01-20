@@ -1,18 +1,19 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync } from "fastify";
-import { RepositoryBackend, JobQueueBackend } from "../storage/ports.js";
-import {
-  createRepositoryBackend,
-  createJobQueueBackend,
-} from "../storage/factory.js";
+import { Storage, JobQueueBackend } from "../storage/index.js";
+import { createStorage, createJobQueueBackend } from "../storage/factory.js";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import * as schema from "../storage/adapters/postgres/schema.js";
 
 // Extend Fastify's type system to include storage
 declare module "fastify" {
   interface FastifyInstance {
-    repository: RepositoryBackend;
+    storage: Storage;
     jobQueue: JobQueueBackend;
   }
 }
+
+export type DrizzleDatabase = NodePgDatabase<typeof schema>;
 
 /**
  * Fastify plugin that initializes and registers the storage backends.
@@ -30,7 +31,7 @@ const storagePlugin: FastifyPluginAsync = async (fastify) => {
   );
 
   // Create backends
-  const repository = createRepositoryBackend({
+  const storage = createStorage({
     backend: repoConfig.backend,
     connectionString: repoConfig.connectionString,
   });
@@ -40,17 +41,17 @@ const storagePlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   // Connect to backends
-  await repository.connect();
+  await storage.connect();
   await jobQueue.connect();
 
   // Register cleanup on shutdown
   fastify.addHook("onClose", async () => {
     fastify.log.info("Disconnecting storage backends");
-    await Promise.all([repository.disconnect(), jobQueue.disconnect()]);
+    await Promise.all([storage.disconnect(), jobQueue.disconnect()]);
   });
 
   // Decorate Fastify instance with backends
-  fastify.decorate("repository", repository);
+  fastify.decorate("storage", storage);
   fastify.decorate("jobQueue", jobQueue);
 };
 
