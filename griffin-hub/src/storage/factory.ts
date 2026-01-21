@@ -1,15 +1,8 @@
+import { JobQueueBackend, MigrationRunner } from "./ports.js";
+import { Storage } from "./repositories.js";
+import { SqliteStorage } from "./adapters/sqlite/index.js";
 import {
-  RepositoryBackend,
-  JobQueueBackend,
-  MigrationRunner,
-} from "./ports.js";
-import {
-  MemoryRepositoryBackend,
-  MemoryJobQueueBackend,
-} from "./adapters/memory/index.js";
-import { SqliteRepositoryBackend } from "./adapters/sqlite/index.js";
-import {
-  PostgresRepositoryBackend,
+  PostgresStorage,
   PostgresJobQueueBackend,
 } from "./adapters/postgres/index.js";
 // TODO: Uncomment when implementing migration runners
@@ -47,23 +40,18 @@ export interface JobQueueConfig {
 // =============================================================================
 
 /**
- * Create a repository backend based on configuration.
+ * Create a storage backend based on configuration.
  */
-export function createRepositoryBackend(
-  config: RepositoryConfig,
-): RepositoryBackend {
+export function createStorage(config: RepositoryConfig): Storage {
   switch (config.backend) {
-    case "memory":
-      return new MemoryRepositoryBackend();
-
     case "sqlite":
-      return new SqliteRepositoryBackend(config.connectionString || ":memory:");
+      return new SqliteStorage(config.connectionString || ":memory:");
 
     case "postgres":
       if (!config.connectionString) {
         throw new Error("Connection string required for Postgres backend");
       }
-      return new PostgresRepositoryBackend(config.connectionString);
+      return new PostgresStorage(config.connectionString);
 
     default:
       throw new Error(`Unknown repository backend: ${config.backend}`);
@@ -75,9 +63,6 @@ export function createRepositoryBackend(
  */
 export function createJobQueueBackend(config: JobQueueConfig): JobQueueBackend {
   switch (config.backend) {
-    case "memory":
-      return new MemoryJobQueueBackend();
-
     case "postgres":
       if (!config.connectionString) {
         throw new Error("Connection string required for Postgres backend");
@@ -90,26 +75,19 @@ export function createJobQueueBackend(config: JobQueueConfig): JobQueueBackend {
 }
 
 /**
- * Create a migration runner for a repository backend.
+ * Create a migration runner for a storage backend.
  * Returns null for in-memory storage (no migrations needed).
  */
 export function createMigrationRunner(
-  backend: RepositoryBackend,
+  storage: Storage,
   backendType: RepositoryBackendType,
 ): MigrationRunner | null {
   switch (backendType) {
-    case "memory":
-      return null; // No migrations needed for in-memory storage
-
     case "sqlite":
-      // TODO: Extract db from SqliteRepositoryBackend
       throw new Error("SQLite migration runner not yet implemented");
-    // return new SqliteMigrationRunner(db);
 
     case "postgres":
-      // TODO: Extract pool from PostgresRepositoryBackend
       throw new Error("Postgres migration runner not yet implemented");
-    // return new PostgresMigrationRunner(pool);
 
     default:
       throw new Error(`Unknown repository backend: ${backendType}`);
@@ -124,14 +102,13 @@ export function createMigrationRunner(
  * Load repository configuration from environment variables.
  *
  * Environment variables:
- * - REPOSITORY_BACKEND: 'memory' | 'sqlite' | 'postgres' (default: 'memory')
+ * - REPOSITORY_BACKEND:  'sqlite' | 'postgres'
  * - REPOSITORY_CONNECTION_STRING: connection string for the backend
  * - SQLITE_PATH: (alias for REPOSITORY_CONNECTION_STRING when using SQLite)
  * - POSTGRESQL_URL: (alias for REPOSITORY_CONNECTION_STRING when using Postgres)
  */
 export function loadRepositoryConfig(): RepositoryConfig {
-  const backend = (process.env.REPOSITORY_BACKEND ||
-    "memory") as RepositoryBackendType;
+  const backend = process.env.REPOSITORY_BACKEND as RepositoryBackendType;
 
   let connectionString: string | undefined;
 
@@ -157,21 +134,12 @@ export function loadRepositoryConfig(): RepositoryConfig {
  * Load job queue configuration from environment variables.
  *
  * Environment variables:
- * - JOBQUEUE_BACKEND: 'memory' | 'postgres' (default: 'memory')
+ * - JOBQUEUE_BACKEND:  'postgres' (default: 'memory')
  * - JOBQUEUE_CONNECTION_STRING: connection string for the backend
  * - POSTGRESQL_URL: (alias for JOBQUEUE_CONNECTION_STRING when using Postgres)
  */
 export function loadJobQueueConfig(): JobQueueConfig {
-  const backendRaw = process.env.JOBQUEUE_BACKEND || "memory";
-
-  // Validate that it's a valid job queue backend (no sqlite)
-  if (backendRaw === "sqlite") {
-    throw new Error(
-      'SQLite is not supported as a job queue backend. Use "memory" or "postgres" instead.',
-    );
-  }
-
-  const backend = backendRaw as JobQueueBackendType;
+  const backend = process.env.JOBQUEUE_BACKEND as JobQueueBackendType;
 
   let connectionString: string | undefined;
 

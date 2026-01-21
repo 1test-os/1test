@@ -2,21 +2,25 @@
  * Storage module - exports all storage-related types and functions.
  */
 
-// Core interfaces
-export * from "./ports.js";
+// Core interfaces - New Storage interface
+export * from "./repositories.js";
+
+// Legacy interfaces - JobQueue (still used) and old Repository (being phased out)
+export type {
+  JobQueue,
+  JobQueueBackend,
+  Job,
+  JobStatus,
+  EnqueueOptions,
+  MigrationRunner,
+} from "./ports.js";
 
 // Factory functions
 export * from "./factory.js";
 
-// Adapters (if you need to import them directly for testing)
+// Adapters
+export { SqliteStorage } from "./adapters/sqlite/index.js";
 export {
-  MemoryRepositoryBackend,
-  MemoryJobQueueBackend,
-} from "./adapters/memory/index.js";
-
-export { SqliteRepositoryBackend } from "./adapters/sqlite/index.js";
-
-export {
-  PostgresRepositoryBackend,
+  PostgresStorage,
   PostgresJobQueueBackend,
 } from "./adapters/postgres/index.js";

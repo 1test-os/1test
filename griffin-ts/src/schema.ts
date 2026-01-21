@@ -273,13 +273,13 @@ export type Edge = Static<typeof EdgeSchema>;
 
 export const TestPlanV1Schema = Type.Object(
   {
-    organization: Type.Optional(Type.String()), // TODO: make these required
-    project: Type.Optional(Type.String()), // TODO: make these required
+    organization: Type.String(),
+    project: Type.String(),
     locations: Type.Optional(Type.Array(Type.String())),
     id: Type.Readonly(Type.String()),
     name: Type.String(),
     version: Type.Literal("1.0"),
-    frequency: Type.Optional(FrequencySchema),
+    frequency: FrequencySchema,
     environment: Type.String({ default: "default" }),
     nodes: Type.Array(NodeSchema),
     edges: Type.Array(EdgeSchema),

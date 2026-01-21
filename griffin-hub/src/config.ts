@@ -8,22 +8,13 @@ import { Value } from "typebox/value";
 export const ConfigSchema = Type.Object({
   // Repository configuration
   repository: Type.Object({
-    backend: Type.Union(
-      [
-        Type.Literal("memory"),
-        Type.Literal("sqlite"),
-        Type.Literal("postgres"),
-      ],
-      { default: "memory" },
-    ),
+    backend: Type.Union([Type.Literal("sqlite"), Type.Literal("postgres")]),
     connectionString: Type.Optional(Type.String()),
   }),
 
   // Job queue configuration
   jobQueue: Type.Object({
-    backend: Type.Union([Type.Literal("memory"), Type.Literal("postgres")], {
-      default: "memory",
-    }),
+    backend: Type.Union([Type.Literal("postgres")]),
     connectionString: Type.Optional(Type.String()),
   }),
 
@@ -142,50 +133,32 @@ function parseInteger(value: string | undefined, defaultValue: number): number {
  * Throws an error if required environment variables are missing.
  */
 export function loadConfigFromEnv(): Config {
-  const repositoryBackend = (process.env.REPOSITORY_BACKEND || "memory") as
-    | "memory"
+  const repositoryBackend = process.env.REPOSITORY_BACKEND as
     | "sqlite"
     | "postgres";
 
   // Determine repository connection string
-  let repositoryConnectionString: string | undefined;
-  if (repositoryBackend === "sqlite") {
-    repositoryConnectionString =
-      process.env.REPOSITORY_CONNECTION_STRING ||
-      process.env.SQLITE_PATH ||
-      ":memory:";
-  } else if (repositoryBackend === "postgres") {
-    repositoryConnectionString =
-      process.env.REPOSITORY_CONNECTION_STRING || process.env.POSTGRESQL_URL;
-    if (!repositoryConnectionString) {
-      throw new Error(
-        "REPOSITORY_CONNECTION_STRING or POSTGRESQL_URL is required when REPOSITORY_BACKEND=postgres",
-      );
-    }
+  let repositoryConnectionString = process.env.DATABASE_URL;
+  if (!repositoryConnectionString) {
+    throw new Error("DATABASE_URL is required");
   }
+  //if (repositoryBackend === "sqlite") {
+  //  repositoryConnectionString =
+  //    process.env.REPOSITORY_CONNECTION_STRING ||
+  //    process.env.SQLITE_PATH ||
+  //    ":memory:";
+  //} else if (repositoryBackend === "postgres") {
+  //  repositoryConnectionString =
+  //    process.env.REPOSITORY_CONNECTION_STRING || process.env.POSTGRESQL_URL;
+  //  if (!repositoryConnectionString) {
+  //    throw new Error(
+  //      "REPOSITORY_CONNECTION_STRING or POSTGRESQL_URL is required when REPOSITORY_BACKEND=postgres",
+  //    );
+  //  }
+  //}
 
-  const jobQueueBackend = (process.env.JOBQUEUE_BACKEND || "memory") as
-    | "memory"
-    | "postgres";
-
-  // Validate job queue backend
-  if (process.env.JOBQUEUE_BACKEND === "sqlite") {
-    throw new Error(
-      'SQLite is not supported as a job queue backend. Use "memory" or "postgres" instead.',
-    );
-  }
-
-  // Determine job queue connection string
-  let jobQueueConnectionString: string | undefined;
-  if (jobQueueBackend === "postgres") {
-    jobQueueConnectionString =
-      process.env.JOBQUEUE_CONNECTION_STRING || process.env.POSTGRESQL_URL;
-    if (!jobQueueConnectionString) {
-      throw new Error(
-        "JOBQUEUE_CONNECTION_STRING or POSTGRESQL_URL is required when JOBQUEUE_BACKEND=postgres",
-      );
-    }
-  }
+  const jobQueueBackend = "postgres"; //process.env.JOBQUEUE_BACKEND as "postgres";
+  const jobQueueConnectionString = process.env.DATABASE_URL;
 
   // Parse secret providers configuration
   const secretProviders = process.env.SECRET_PROVIDERS
@@ -315,8 +288,9 @@ export function loadConfigFromEnv(): Config {
   // Validate the config against the schema
   if (!Value.Check(ConfigSchema, config)) {
     const errors = [...Value.Errors(ConfigSchema, config)];
+    console.error(JSON.stringify(errors, null, 2));
     throw new Error(
-      `Invalid configuration: ${errors.map((e) => e.message).join(", ")}`,
+      `Invalid configuration: ${errors.map((e) => JSON.stringify(e, null, 2)).join("\n")}`,
     );
   }
 

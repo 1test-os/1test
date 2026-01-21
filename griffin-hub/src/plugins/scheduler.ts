@@ -39,9 +39,8 @@ const schedulerPlugin: FastifyPluginAsync = async (fastify) => {
   }
 
   // Create scheduler service
-  const scheduler = new SchedulerService(fastify.repository, fastify.jobQueue, {
+  const scheduler = new SchedulerService(fastify.storage, fastify.jobQueue, {
     tickInterval: schedulerConfig.tickInterval,
-    backendType: repository.backend,
   });
 
   // Start scheduler when server is ready

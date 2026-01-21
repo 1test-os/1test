@@ -2,8 +2,8 @@
  * Secret resolution utilities for test plans.
  */
 
-import { TestPlanV1, Node } from "griffin/types";
-import { NodeType } from "griffin/schema";
+import { TestPlanV1, Node } from "@griffin-app/griffin-ts/types";
+import { NodeType } from "@griffin-app/griffin-ts/schema";
 import type { SecretProviderRegistry } from "./registry.js";
 import type { SecretRef, SecretRefData } from "./types.js";
 import { isSecretRef } from "./types.js";

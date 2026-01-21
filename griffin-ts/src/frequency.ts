@@ -1,4 +1,4 @@
-import { Frequency as FrequencyType, FrequencyUnit } from "./schema";
+import { Frequency as FrequencyType, FrequencyUnit } from "./schema.js";
 
 export class FrequencyBuilder {
   private value: number;

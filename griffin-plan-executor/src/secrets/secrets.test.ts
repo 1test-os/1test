@@ -7,8 +7,8 @@ import {
   collectSecretsFromPlan,
   planHasSecrets,
 } from "./resolver.js";
-import { NodeType, ResponseFormat, HttpMethod } from "griffin/schema";
-import { TestPlanV1 } from "griffin/types";
+import { NodeType, ResponseFormat, HttpMethod, FrequencyUnit } from "@griffin-app/griffin-ts/schema";
+import { TestPlanV1 } from "@griffin-app/griffin-ts/types";
 
 // Helper to create a secret ref (mirrors the DSL's secret function)
 function createSecretRef(path: string) {
@@ -121,6 +121,9 @@ describe("Plan Secret Resolution", () => {
     name: "Test Plan",
     version: "1.0",
     environment: "default",
+    organization: "test-org",
+    project: "test-project",
+    frequency: { every: 1, unit: FrequencyUnit.MINUTE },
     nodes: [
       {
         id: "endpoint-1",

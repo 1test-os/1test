@@ -9,45 +9,45 @@
 // DSL Builders
 // ============================================================================
 
-export { createGraphBuilder } from "./builder";
-export type { TestBuilder } from "./builder";
+export { createGraphBuilder } from "./builder.js";
+export type { TestBuilder } from "./builder.js";
 
-export { createTestBuilder } from "./sequential-builder";
+export { createTestBuilder } from "./sequential-builder.js";
 export type {
   SequentialTestBuilder,
   AssertionCallback,
-} from "./sequential-builder";
+} from "./sequential-builder.js";
 
 // ============================================================================
 // DSL Node Factories
 // ============================================================================
 
-export { Endpoint, Wait, Assertion } from "./builder";
+export { Endpoint, Wait, Assertion } from "./builder.js";
 export type {
   EndpointConfig,
   WaitDuration as WaitDurationType,
-} from "./builder";
+} from "./builder.js";
 
 // ============================================================================
 // DSL Helpers
 // ============================================================================
 
-export { Frequency } from "./frequency";
-export { WaitDuration } from "./wait";
-export { variable, isVariableRef } from "./variable";
-export type { VariableRef } from "./variable";
-export { secret, isSecretRef } from "./secrets";
-export type { SecretRefData, SecretOptions } from "./secrets";
+export { Frequency } from "./frequency.js";
+export { WaitDuration } from "./wait.js";
+export { variable, isVariableRef } from "./variable.js";
+export type { VariableRef } from "./variable.js";
+export { secret, isSecretRef } from "./secrets.js";
+export type { SecretRefData, SecretOptions } from "./secrets.js";
 
 // ============================================================================
 // DSL Constants
 // ============================================================================
 
-export { START, END } from "./constants";
-export type { START as StartType, END as EndType } from "./constants";
+export { START, END } from "./constants.js";
+export type { START as StartType, END as EndType } from "./constants.js";
 
-export { GET, POST, PUT, DELETE, PATCH } from "./http-methods";
-export { Json, Xml, Text } from "./response-formats";
+export { GET, POST, PUT, DELETE, PATCH } from "./http-methods.js";
+export { Json, Xml, Text } from "./response-formats.js";
 
 // ============================================================================
 // Assertion DSL
@@ -59,7 +59,7 @@ export {
   UnaryPredicate,
   BinaryPredicateOperator,
   createStateProxy,
-} from "./assertions";
+} from "./assertions.js";
 
 export type {
   SerializedAssertion,
@@ -68,4 +68,4 @@ export type {
   StateProxy,
   NodeResultProxy,
   NestedProxy,
-} from "./assertions";
+} from "./assertions.js";

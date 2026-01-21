@@ -18,7 +18,7 @@ const plan = createGraphBuilder({
     "list_plans",
     Endpoint({
       method: GET,
-      base: variable("runner-api"),
+      base: variable("griffin-hub"),
       response_format: Json,
       path: "/plan/plan",
       headers: { "X-API-Key": secret("env:RUNNER_API_KEY") },
@@ -28,7 +28,7 @@ const plan = createGraphBuilder({
     "list_runs",
     Endpoint({
       method: GET,
-      base: variable("runner-api"),
+      base: variable("griffin-hub"),
       response_format: Json,
       path: "/runs/runs",
       headers: { "X-API-Key": secret("env:RUNNER_API_KEY") },

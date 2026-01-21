@@ -17,7 +17,7 @@ const plan = createGraphBuilder({
     "root",
     Endpoint({
       method: GET,
-      base: variable("runner-api"),
+      base: variable("griffin-hub"),
       response_format: Json,
       path: "/",
     }),

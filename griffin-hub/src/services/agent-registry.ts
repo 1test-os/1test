@@ -1,7 +1,9 @@
-import type { RepositoryBackend } from "../storage/ports.js";
+import type { Storage } from "../storage/index.js";
 import type { Agent } from "../schemas/agent.js";
 import { AgentStatus } from "../schemas/agent.js";
 import { randomUUID } from "node:crypto";
+import { eq, and, asc } from "drizzle-orm";
+import { agentsTable } from "../storage/adapters/postgres/schema.js";
 
 export interface RegisterAgentOptions {
   location: string;
@@ -18,7 +20,7 @@ export class AgentRegistry {
   private isMonitoring = false;
 
   constructor(
-    private repository: RepositoryBackend,
+    private storage: Storage,
     heartbeatTimeoutSeconds = 60,
   ) {
     this.heartbeatTimeoutMs = heartbeatTimeoutSeconds * 1000;
@@ -29,10 +31,8 @@ export class AgentRegistry {
    * Returns the agent record with generated ID.
    */
   async register(options: RegisterAgentOptions): Promise<Agent> {
-    const agentRepo = this.repository.repository<Agent>("agents");
-
     const now = new Date().toISOString();
-    const agent = await agentRepo.create({
+    const agent = await this.storage.agents.create({
       location: options.location,
       status: AgentStatus.ONLINE,
       lastHeartbeat: now,
@@ -49,15 +49,13 @@ export class AgentRegistry {
    * Returns true if successful, false if agent not found.
    */
   async heartbeat(agentId: string): Promise<boolean> {
-    const agentRepo = this.repository.repository<Agent>("agents");
-
     try {
-      const agent = await agentRepo.findById(agentId);
+      const agent = await this.storage.agents.findById(agentId);
       if (!agent) {
         return false;
       }
 
-      await agentRepo.update(agentId, {
+      await this.storage.agents.update(agentId, {
         lastHeartbeat: new Date().toISOString(),
         status: AgentStatus.ONLINE,
       });
@@ -74,11 +72,9 @@ export class AgentRegistry {
    * This is typically called when an agent shuts down gracefully.
    */
   async deregister(agentId: string): Promise<void> {
-    const agentRepo = this.repository.repository<Agent>("agents");
-
-    const agent = await agentRepo.findById(agentId);
+    const agent = await this.storage.agents.findById(agentId);
     if (agent) {
-      await agentRepo.delete(agentId);
+      await this.storage.agents.delete(agentId);
       console.log(
         `Agent deregistered: ${agentId} at location ${agent.location}`,
       );
@@ -89,19 +85,17 @@ export class AgentRegistry {
    * Get all agents, optionally filtered by location and/or status.
    */
   async listAgents(location?: string, status?: AgentStatus): Promise<Agent[]> {
-    const agentRepo = this.repository.repository<Agent>("agents");
-
-    const filter: any = {};
+    const conditions = [];
     if (location) {
-      filter.location = location;
+      conditions.push(eq(agentsTable.location, location));
     }
     if (status) {
-      filter.status = status;
+      conditions.push(eq(agentsTable.status, status));
     }
 
-    return agentRepo.findMany({
-      filter: Object.keys(filter).length > 0 ? filter : undefined,
-      sort: { field: "registeredAt", order: "asc" },
+    return this.storage.agents.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+      orderBy: [asc(agentsTable.registeredAt)],
     });
   }
 
@@ -110,18 +104,14 @@ export class AgentRegistry {
    * Only returns locations with at least one online agent.
    */
   async getRegisteredLocations(): Promise<string[]> {
-    const agents = await this.listAgents(undefined, AgentStatus.ONLINE);
-    const locations = new Set(agents.map((a) => a.location));
-    return Array.from(locations).sort();
+    return await this.storage.agents.findDistinctLocations(true);
   }
 
   /**
    * Get a list of all locations (including those with only offline agents).
    */
   async getAllLocations(): Promise<string[]> {
-    const agents = await this.listAgents();
-    const locations = new Set(agents.map((a) => a.location));
-    return Array.from(locations).sort();
+    return await this.storage.agents.findDistinctLocations(false);
   }
 
   /**
@@ -176,8 +166,6 @@ export class AgentRegistry {
    * and mark them as offline.
    */
   private async checkStaleAgents(): Promise<void> {
-    const agentRepo = this.repository.repository<Agent>("agents");
-
     // Get all online agents
     const onlineAgents = await this.listAgents(undefined, AgentStatus.ONLINE);
 
@@ -192,7 +180,7 @@ export class AgentRegistry {
           `Marking agent ${agent.id} (${agent.location}) as offline - last heartbeat was ${Math.round((now - lastHeartbeat) / 1000)}s ago`,
         );
 
-        await agentRepo.update(agent.id, {
+        await this.storage.agents.update(agent.id, {
           status: AgentStatus.OFFLINE,
         });
       }

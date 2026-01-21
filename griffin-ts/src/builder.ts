@@ -12,9 +12,9 @@ import {
   TEST_PLAN_VERSION,
   JSONAssertion,
 } from "./schema.js";
-import { type START as StartType, type END as EndType } from "./constants";
+import { type START as StartType, type END as EndType } from "./constants.js";
 
-type RawPlan = Omit<TestPlanV1, "id" | "environment">;
+type RawPlan = Omit<TestPlanV1, "id" | "environment" | "organization" | "project">;
 
 /**
  * A node definition without the id field.
@@ -121,7 +121,7 @@ class TestBuilderImpl<
   constructor(
     private config: {
       name: string;
-      frequency?: Frequency;
+      frequency: Frequency;
       locations?: string[];
     },
   ) {}
@@ -184,7 +184,7 @@ class TestBuilderImpl<
  *
  * @param config - Configuration for the test plan
  * @param config.name - Name of the test
- * @param config.frequency - Optional frequency for scheduled execution
+ * @param config.frequency - frequency for scheduled execution
  * @param config.locations - Optional array of location identifiers where this test should run
  * @returns A new TestBuilder instance
  *
@@ -203,7 +203,7 @@ class TestBuilderImpl<
  */
 export function createGraphBuilder(config: {
   name: string;
-  frequency?: Frequency;
+  frequency: Frequency;
   locations?: string[];
 }): TestBuilder {
   return new TestBuilderImpl(config);
