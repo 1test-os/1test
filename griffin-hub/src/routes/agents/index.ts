@@ -76,7 +76,7 @@ const agentsRoute = async (fastify: any) => {
     {
       schema: RegisterEndpoint,
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { location, metadata } = request.body;
 
       const agent = await agentRegistry.register({
@@ -94,7 +94,7 @@ const agentsRoute = async (fastify: any) => {
     {
       schema: HeartbeatEndpoint,
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { id } = request.params;
 
       const success = await agentRegistry.heartbeat(id);
@@ -115,7 +115,7 @@ const agentsRoute = async (fastify: any) => {
     {
       schema: DeregisterEndpoint,
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { id } = request.params;
 
       await agentRegistry.deregister(id);
@@ -130,7 +130,7 @@ const agentsRoute = async (fastify: any) => {
     {
       schema: ListAgentsEndpoint,
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { location, status } = request.query as {
         location?: string;
         status?: "online" | "offline";
@@ -151,7 +151,7 @@ const agentsRoute = async (fastify: any) => {
     {
       schema: GetRegisteredLocationsEndpoint,
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const locations = await agentRegistry.getRegisteredLocations();
 
       return reply.code(200).send({
