@@ -273,7 +273,6 @@ export type Edge = Static<typeof EdgeSchema>;
 
 export const TestPlanV1Schema = Type.Object(
   {
-    organization: Type.String(),
     project: Type.String(),
     locations: Type.Optional(Type.Array(Type.String())),
     id: Type.Readonly(Type.String()),
