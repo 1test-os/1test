@@ -49,8 +49,12 @@ export const plansTable = pgTable("plans", {
   nodes: jsonb("nodes").$type<Node[]>().notNull(),
   edges: jsonb("edges").$type<Edge[]>().notNull(),
   environment: text("environment").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const runsTable = pgTable("runs", {
@@ -68,8 +72,12 @@ export const runsTable = pgTable("runs", {
   duration_ms: integer("duration_ms"),
   success: boolean("success"),
   errors: jsonb("errors").$type<string[]>(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const jobsTable = pgTable("jobs", {
@@ -85,8 +93,12 @@ export const jobsTable = pgTable("jobs", {
   startedAt: timestamp("started_at", { withTimezone: true }),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   error: text("error"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const agentsTable = pgTable("agents", {
@@ -96,6 +108,10 @@ export const agentsTable = pgTable("agents", {
   lastHeartbeat: timestamp("last_heartbeat", { withTimezone: true }).notNull(),
   registeredAt: timestamp("registered_at", { withTimezone: true }).notNull(),
   metadata: jsonb("metadata").$type<Record<string, string>>(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

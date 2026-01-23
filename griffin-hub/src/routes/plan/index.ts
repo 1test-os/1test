@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { FastifyTypeBox } from "../../types.js";
-import { 
+import {
   HttpMethodSchema,
   SecretRefSchema,
   StringLiteralSchema,

@@ -32,7 +32,7 @@ export class PostgresStorage implements Storage {
     this.pool = new Pool({
       connectionString: this.connectionString,
       // Set timezone to UTC for all connections
-      options: '-c timezone=UTC',
+      options: "-c timezone=UTC",
     });
     this.db = drizzle(this.pool, { schema });
 
@@ -131,7 +131,7 @@ export class PostgresJobQueueBackend implements JobQueueBackend {
     const pool = new Pool({
       connectionString: this.connectionString,
       // Set timezone to UTC for all connections
-      options: '-c timezone=UTC',
+      options: "-c timezone=UTC",
     });
     this.db = drizzle(pool, { schema });
   }

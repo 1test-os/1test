@@ -30,9 +30,7 @@ export const EndpointSchema = Type.Object(
     method: HttpMethodSchema,
     path: Type.String(),
     base: Type.String(),
-    headers: Type.Optional(
-      Type.Record(Type.String(), SecretOrStringSchema),
-    ),
+    headers: Type.Optional(Type.Record(Type.String(), SecretOrStringSchema)),
     body: Type.Optional(Type.Any()), // Body can contain nested SecretRefs
     response_format: ResponseFormatSchema,
   },

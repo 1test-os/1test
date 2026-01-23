@@ -359,12 +359,8 @@
           "name": "runs_plan_id_plans_id_fk",
           "tableFrom": "runs",
           "tableTo": "plans",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -380,40 +376,22 @@
     "public.agent_status": {
       "name": "agent_status",
       "schema": "public",
-      "values": [
-        "online",
-        "offline"
-      ]
+      "values": ["online", "offline"]
     },
     "public.job_queue_status": {
       "name": "job_queue_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "running",
-        "completed",
-        "failed",
-        "retrying"
-      ]
+      "values": ["pending", "running", "completed", "failed", "retrying"]
     },
     "public.job_run_status": {
       "name": "job_run_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "running",
-        "completed",
-        "failed"
-      ]
+      "values": ["pending", "running", "completed", "failed"]
     },
     "public.trigger_type": {
       "name": "trigger_type",
       "schema": "public",
-      "values": [
-        "schedule",
-        "manual",
-        "api"
-      ]
+      "values": ["schedule", "manual", "api"]
     }
   },
   "schemas": {},

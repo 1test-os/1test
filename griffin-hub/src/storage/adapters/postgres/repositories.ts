@@ -108,12 +108,19 @@ export class PostgresPlansRepository implements PlansRepository {
     // because the runs table also has an "id" column. Without the table qualifier,
     // PostgreSQL resolves "id" to runs.id, making the subquery always return NULL.
 
+    const subquery = this.db
+      .select({ startedAt: runsTable.startedAt })
+      .from(runsTable)
+      .where(eq(runsTable.planId, plansTable.id))
+      .orderBy(desc(runsTable.startedAt))
+      .limit(1)
+      .as("latest_run");
     const result = await this.db
       .select({
         plans: plansTable,
       })
       .from(plansTable)
-      .leftJoin(runsTable, eq(plansTable.id, runsTable.planId)).where(sql`
+      .leftJoinLateral(subquery, sql`true`).where(sql`
         frequency IS NOT NULL
         AND (
           (SELECT MAX(started_at) FROM ${runsTable} WHERE ${runsTable.planId} = ${plansTable.id}) IS NULL
