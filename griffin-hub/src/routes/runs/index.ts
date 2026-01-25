@@ -7,7 +7,6 @@ import {
   TriggerType,
   type JobRun,
 } from "../../schemas/job-run.js";
-import type { TestPlanV1 } from "@griffin-app/griffin-ts/types";
 import { FastifyTypeBox } from "../../types.js";
 import {
   ErrorResponseOpts,
@@ -17,6 +16,7 @@ import {
 } from "../../schemas/shared.js";
 import { eq, and, desc } from "drizzle-orm";
 import { runsTable } from "../../storage/adapters/postgres/schema.js";
+import { utcNow } from "../../utils/dates.js";
 
 // Query parameters for listing runs
 const ListRunsQuerySchema = Type.Object({
@@ -207,7 +207,7 @@ export default function (fastify: FastifyTypeBox) {
       }
 
       // Create a JobRun record
-      const now = new Date();
+      const now = utcNow();
       const executionGroupId = randomUUID();
       // TODO: Phase 2 - Resolve location from agent registry
       const location = "local";
@@ -219,7 +219,7 @@ export default function (fastify: FastifyTypeBox) {
         environment,
         status: JobRunStatus.PENDING,
         triggeredBy: TriggerType.MANUAL,
-        startedAt: now.toISOString(),
+        startedAt: now,
       });
 
       // Enqueue the job
@@ -229,11 +229,11 @@ export default function (fastify: FastifyTypeBox) {
           planId: plan.id,
           jobRunId: jobRun.id,
           environment,
-          scheduledAt: now.toISOString(),
+          scheduledAt: now,
         },
         {
           location,
-          runAt: now,
+          runAt: new Date(now),
           priority: 10, // Higher priority for manual executions
           maxAttempts: 3,
         },

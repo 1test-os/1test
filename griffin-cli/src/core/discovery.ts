@@ -1,20 +1,12 @@
 import { glob } from "glob";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { TestPlanV1Schema } from "@griffin-app/griffin-ts/schema";
-import type { TestPlanV1 } from "@griffin-app/griffin-ts/types";
+import { PlanDSLSchema } from "@griffin-app/griffin-ts/schema";
+import type { PlanDSL } from "@griffin-app/griffin-ts/types";
 import { Value } from "typebox/value";
-import { Static, Type } from "typebox";
-
-const RawTestPlanSchema = Type.Omit(TestPlanV1Schema, [
-  "id",
-  "environment",
-  "project",
-]);
-export type RawTestPlan = Omit<TestPlanV1, "id" | "environment" | "project">;
 
 export interface DiscoveredPlan {
-  plan: RawTestPlan;
+  plan: PlanDSL;
   filePath: string;
   exportName: string;
 }
@@ -46,8 +38,6 @@ export async function discoverPlans(
     cwd: process.cwd(),
   });
 
-  console.log(`Found ${files.length} test file(s)`);
-
   // Load each file
   for (const filePath of files) {
     try {
@@ -64,8 +54,8 @@ export async function discoverPlans(
   return { plans, errors };
 }
 
-function isPlan(value: unknown): value is TestPlanV1 {
-  return Value.Check(RawTestPlanSchema, value);
+function isPlan(value: unknown): value is PlanDSL {
+  return Value.Check(PlanDSLSchema, value);
 }
 
 /**
@@ -90,7 +80,7 @@ async function loadPlansFromFile(filePath: string): Promise<DiscoveredPlan[]> {
           exportName: "default",
         });
       } else {
-        const errors = Value.Errors(RawTestPlanSchema, module.default);
+        const errors = Value.Errors(PlanDSLSchema, module.default);
         throw new Error(
           `Default export is not a valid TestPlan. Got: ${JSON.stringify(errors, null, 2)}`,
         );

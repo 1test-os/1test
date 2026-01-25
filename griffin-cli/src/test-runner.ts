@@ -7,17 +7,21 @@ import {
   EnvSecretProvider,
   SecretProviderRegistry,
 } from "@griffin-app/griffin-plan-executor";
-import { TestPlanV1Schema } from "@griffin-app/griffin-ts/schema";
-import { Type } from "typebox";
+import { PlanDSLSchema } from "@griffin-app/griffin-ts/schema";
 import { randomUUID } from "crypto";
-import { loadVariables, resolveVariablesInPlan } from "./core/variables.js";
+import { loadVariables } from "./core/variables.js";
 import { getProjectId } from "./core/state.js";
+import { PlanDSL } from "@griffin-app/griffin-ts/types";
+import { resolvePlan } from "./resolve.js";
+import { terminal } from "./utils/terminal.js";
 
-const RawTestSchema = Type.Omit(TestPlanV1Schema, [
-  "id",
-  "environment",
-  "project",
-]);
+function validateDsl(plan: unknown): PlanDSL {
+  const errors = Value.Errors(PlanDSLSchema, plan);
+  if (errors.length > 0) {
+    throw new Error(`Invalid plan: ${JSON.stringify([...errors], null, 2)}`);
+  }
+  return plan as PlanDSL;
+}
 
 /**
  * Runs a TypeScript test file and executes the resulting JSON plan.
@@ -29,34 +33,30 @@ export async function runTestFile(
   const variables = await loadVariables(envName);
   const projectId = await getProjectId();
   const defaultExport = await import(filePath);
-  const rawPlan = defaultExport.default;
+  const rawPlan = validateDsl(defaultExport.default);
 
-  console.log(`Project ID: ${projectId}`);
-  // Resolve all variable references in the plan
-  const resolvedPlan = resolveVariablesInPlan(rawPlan, variables);
-
+  terminal.dim(`Project ID: ${projectId}`);
+  const resolvedPlan = resolvePlan(rawPlan, projectId, envName, variables);
   const secretRegistry = new SecretProviderRegistry();
   secretRegistry.register(new EnvSecretProvider());
 
   try {
-    const parsedPlan = Value.Parse(RawTestSchema, resolvedPlan);
-    const syntheticPlan = {
-      ...parsedPlan,
-      id: randomUUID(),
-      project: projectId,
-      environment: envName,
-    };
-    const result = await executePlanV1(syntheticPlan, "default-org", {
-      mode: "local",
-      httpClient: new AxiosAdapter(),
-      secretRegistry: secretRegistry,
-    });
-    console.log(JSON.stringify(result, null, 2));
+    const result = await executePlanV1(
+      {
+        ...resolvedPlan,
+        id: randomUUID(),
+      },
+      "default-org",
+      {
+        mode: "local",
+        httpClient: new AxiosAdapter(),
+        secretRegistry: secretRegistry,
+      },
+    );
     return result;
   } catch (error) {
-    const errors = Value.Errors(RawTestSchema, resolvedPlan);
     throw new Error(
-      `Invalid plan: ${JSON.stringify([...errors], null, 2)}: ${error}`,
+      `Error executing plan: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }

@@ -1,6 +1,9 @@
 import type { DiffAction, DiffResult } from "./diff.js";
-import type { PlanApi, PlanPostRequest } from "@griffin-app/griffin-hub-sdk";
-import type { TestPlanV1 } from "@griffin-app/griffin-ts/types";
+import type { GriffinHubSdk } from "@griffin-app/griffin-hub-sdk";
+import type { PlanV1 } from "@griffin-app/griffin-hub-sdk";
+import { loadVariables } from "./variables.js";
+import { resolvePlan } from "../resolve.js";
+import { terminal } from "../utils/terminal.js";
 
 export interface ApplyResult {
   success: boolean;
@@ -26,7 +29,7 @@ export interface ApplyError {
  */
 export async function applyDiff(
   diff: DiffResult,
-  planApi: PlanApi,
+  sdk: GriffinHubSdk,
   projectId: string,
   environment: string,
   options?: {
@@ -40,17 +43,14 @@ export async function applyDiff(
   const actionsToApply = diff.actions.filter((a) => a.type !== "noop");
 
   if (actionsToApply.length === 0) {
-    console.log("No changes to apply.");
     return { success: true, applied: [], errors: [] };
   }
-
-  console.log(`Applying ${actionsToApply.length} change(s)...`);
 
   // Process each action
   for (const action of actionsToApply) {
     try {
       if (options?.dryRun) {
-        console.log(
+        terminal.dim(
           `[DRY RUN] Would ${action.type} plan: ${action.plan?.name || action.remotePlan?.name}`,
         );
         continue;
@@ -58,17 +58,17 @@ export async function applyDiff(
 
       switch (action.type) {
         case "create":
-          await applyCreate(action, planApi, projectId, environment, applied);
+          await applyCreate(action, sdk, projectId, environment, applied);
           break;
         case "update":
-          await applyUpdate(action, planApi, projectId, environment, applied);
+          await applyUpdate(action, sdk, projectId, environment, applied);
           break;
         case "delete":
-          await applyDelete(action, planApi, applied);
+          await applyDelete(action, sdk, applied);
           break;
       }
     } catch (error) {
-      console.error(error);
+      terminal.error((error as Error).message);
       errors.push({
         action,
         error: error as Error,
@@ -95,34 +95,27 @@ export async function applyDiff(
  */
 async function applyCreate(
   action: DiffAction,
-  planApi: PlanApi,
+  sdk: GriffinHubSdk,
   projectId: string,
   environment: string,
   applied: ApplyAction[],
 ): Promise<void> {
   const plan = action.plan!;
 
-  console.log(`Creating plan: ${plan.name}`);
+  const variables = await loadVariables(environment);
+  const resolvedPlan = resolvePlan(plan, projectId, environment, variables);
 
-  // Inject project AND environment (plan itself is env-agnostic)
-  // POST body is Omit<TestPlanV1, 'id'> - hub assigns the id
-  const payload: Omit<TestPlanV1, "id"> = {
-    ...plan,
-    project: projectId,
-    environment,
-  };
-
-  const { data: createdPlan } = await planApi.planPost(
-    payload as unknown as PlanPostRequest,
-  );
+  const { data: createdPlan } = await sdk.postPlan({
+    body: resolvedPlan,
+  });
 
   applied.push({
     type: "create",
-    planName: createdPlan.data.name,
+    planName: createdPlan!.data.name,
     success: true,
   });
 
-  console.log(`✓ Created: ${createdPlan.data.name}`);
+  terminal.success(`Created: ${terminal.colors.cyan(createdPlan!.data.name)}`);
 }
 
 /**
@@ -130,26 +123,23 @@ async function applyCreate(
  */
 async function applyUpdate(
   action: DiffAction,
-  planApi: PlanApi,
+  sdk: GriffinHubSdk,
   projectId: string,
   environment: string,
   applied: ApplyAction[],
 ): Promise<void> {
   const plan = action.plan!;
   const remotePlan = action.remotePlan!;
-
-  console.log(`Updating plan: ${plan.name}`);
-
-  // Inject project AND environment
-  // PUT body is Omit<TestPlanV1, 'id'> - id comes from URL path
-  const payload: Omit<TestPlanV1, "id"> = {
-    ...plan,
-    project: projectId,
-    environment,
-  };
+  const variables = await loadVariables(environment);
+  const resolvedPlan = resolvePlan(plan, projectId, environment, variables);
 
   // Use the remote plan's ID for the update
-  await planApi.planIdPut(remotePlan.id, payload as unknown as PlanPostRequest);
+  await sdk.putPlanById({
+    path: {
+      id: remotePlan.id,
+    },
+    body: resolvedPlan,
+  });
 
   applied.push({
     type: "update",
@@ -157,7 +147,7 @@ async function applyUpdate(
     success: true,
   });
 
-  console.log(`✓ Updated: ${plan.name}`);
+  terminal.success(`Updated: ${terminal.colors.cyan(plan.name)}`);
 }
 
 /**
@@ -165,14 +155,16 @@ async function applyUpdate(
  */
 async function applyDelete(
   action: DiffAction,
-  planApi: PlanApi,
+  sdk: GriffinHubSdk,
   applied: ApplyAction[],
 ): Promise<void> {
   const remotePlan = action.remotePlan!;
 
-  console.log(`Deleting plan: ${remotePlan.name}`);
-
-  await planApi.planIdDelete(remotePlan.id);
+  await sdk.deletePlanById({
+    path: {
+      id: remotePlan.id,
+    },
+  });
 
   applied.push({
     type: "delete",
@@ -180,7 +172,7 @@ async function applyDelete(
     success: true,
   });
 
-  console.log(`✓ Deleted: ${remotePlan.name}`);
+  terminal.success(`Deleted: ${terminal.colors.cyan(remotePlan.name)}`);
 }
 
 /**

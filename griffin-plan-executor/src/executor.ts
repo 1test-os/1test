@@ -1,16 +1,14 @@
 import {
-  TestPlanV1,
-  Node,
-  Endpoint,
-  Wait,
   Assertions,
-  JSONAssertion,
+  Node,
+  PlanV1,
+  Endpoint,
+  JsonAssertion,
+  Wait,
   Assertion,
-} from "@griffin-app/griffin-ts/types";
-
-import { HttpMethod, ResponseFormat, NodeType } from "@griffin-app/griffin-ts/schema";
-
-import { UnaryPredicate, BinaryPredicateOperator } from "@griffin-app/griffin-ts";
+  UnaryPredicate,
+  BinaryPredicate,
+} from "@griffin-app/griffin-hub-sdk";
 
 import type {
   ExecutionOptions,
@@ -30,6 +28,7 @@ import {
   planHasSecrets,
   SecretResolutionError,
 } from "./secrets/index.js";
+import { utcNow } from "./utils/dates.js";
 
 // Define context type that matches ts-edge's GraphNodeExecuteContext (not exported from library)
 interface NodeExecuteContext {
@@ -46,7 +45,7 @@ class ExecutionContext {
 
   constructor(
     public readonly executionId: string,
-    public readonly plan: TestPlanV1,
+    public readonly plan: PlanV1,
     public readonly organizationId: string,
     private readonly emitter?: ExecutionOptions["eventEmitter"],
   ) {}
@@ -102,41 +101,12 @@ class ExecutionContext {
       ...(stack && { stack }),
     });
   }
-
-  /**
-   * Convert NodeType enum to string for events.
-   */
-  static nodeTypeToString(type: NodeType): "endpoint" | "wait" | "assertion" {
-    switch (type) {
-      case NodeType.ENDPOINT:
-        return "endpoint";
-      case NodeType.WAIT:
-        return "wait";
-      case NodeType.ASSERTION:
-        return "assertion";
-    }
-  }
 }
 // Dynamic state graph type for runtime-constructed graphs
 // - ExecutionState: the shared state type
 // - string: node names are arbitrary strings (not known at compile time)
 // - never: no nodes are pre-marked as "connected" (having outgoing edges)
 type DynamicStateGraph = StateGraphRegistry<ExecutionState, string, never>;
-
-function httpMethodToString(method: HttpMethod): string {
-  const methodMap: Record<HttpMethod, string> = {
-    [HttpMethod.GET]: "GET",
-    [HttpMethod.POST]: "POST",
-    [HttpMethod.PUT]: "PUT",
-    [HttpMethod.DELETE]: "DELETE",
-    [HttpMethod.PATCH]: "PATCH",
-    [HttpMethod.HEAD]: "HEAD",
-    [HttpMethod.OPTIONS]: "OPTIONS",
-    [HttpMethod.CONNECT]: "CONNECT",
-    [HttpMethod.TRACE]: "TRACE",
-  };
-  return methodMap[method];
-}
 
 // State shared across all nodes during execution
 interface ExecutionState {
@@ -147,7 +117,7 @@ interface ExecutionState {
 }
 
 function buildNode(
-  plan: TestPlanV1,
+  plan: PlanV1,
   node: Node,
   options: ExecutionOptions,
 ): {
@@ -158,7 +128,7 @@ function buildNode(
   ) => Promise<ExecutionState>;
 } {
   switch (node.type) {
-    case NodeType.ENDPOINT: {
+    case "ENDPOINT": {
       return {
         name: node.id,
         execute: async (
@@ -172,7 +142,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_START",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
           });
 
           // Handle NODE_STREAM events from ts-edge
@@ -220,7 +190,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_END",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
             success: result.success,
             duration_ms: Date.now() - nodeStartTime,
             error: result.error,
@@ -230,7 +200,7 @@ function buildNode(
         },
       };
     }
-    case NodeType.WAIT: {
+    case "WAIT": {
       return {
         name: node.id,
         execute: async (
@@ -244,7 +214,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_START",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
           });
 
           const result = await executeWait(node.id, node, executionContext);
@@ -260,7 +230,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_END",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
             success: result.success,
             duration_ms: Date.now() - nodeStartTime,
           });
@@ -269,7 +239,7 @@ function buildNode(
         },
       };
     }
-    case NodeType.ASSERTION: {
+    case "ASSERTION": {
       return {
         name: node.id,
         execute: async (
@@ -283,7 +253,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_START",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
           });
 
           const result = await executeAssertions(
@@ -305,7 +275,7 @@ function buildNode(
           executionContext.emit({
             type: "NODE_END",
             nodeId: node.id,
-            nodeType: ExecutionContext.nodeTypeToString(node.type),
+            nodeType: node.type,
             success: result.success,
             duration_ms: Date.now() - nodeStartTime,
             error: result.error,
@@ -319,7 +289,7 @@ function buildNode(
 }
 
 function buildGraph(
-  plan: TestPlanV1,
+  plan: PlanV1,
   options: ExecutionOptions,
   executionContext: ExecutionContext,
 ): DynamicStateGraph {
@@ -358,7 +328,7 @@ function buildGraph(
   return graphWithEdges;
 }
 export async function executePlanV1(
-  plan: TestPlanV1,
+  plan: PlanV1,
   organizationId: string,
   options: ExecutionOptions,
 ): Promise<ExecutionResult> {
@@ -389,7 +359,7 @@ export async function executePlanV1(
       executionContext.emit({
         type: "NODE_START",
         nodeId: "__SECRETS__",
-        nodeType: "endpoint", // Using endpoint as closest match
+        nodeType: "ENDPOINT",
       });
 
       try {
@@ -398,7 +368,7 @@ export async function executePlanV1(
         executionContext.emit({
           type: "NODE_END",
           nodeId: "__SECRETS__",
-          nodeType: "endpoint",
+          nodeType: "ENDPOINT",
           success: true,
           duration_ms: Date.now() - startTime,
         });
@@ -406,7 +376,7 @@ export async function executePlanV1(
         executionContext.emit({
           type: "NODE_END",
           nodeId: "__SECRETS__",
-          nodeType: "endpoint",
+          nodeType: "ENDPOINT",
           success: false,
           duration_ms: Date.now() - startTime,
           error: error instanceof Error ? error.message : String(error),
@@ -423,6 +393,16 @@ export async function executePlanV1(
       nodeCount: resolvedPlan.nodes.length,
       edgeCount: resolvedPlan.edges.length,
     });
+
+    // Call onStart callback if provided
+    if (options.statusCallbacks?.onStart) {
+      try {
+        await options.statusCallbacks.onStart();
+      } catch (error) {
+        console.error("Error in onStart callback:", error);
+        // Don't fail execution due to callback errors
+      }
+    }
 
     // Build execution graph (state-based)
     const graph = buildGraph(resolvedPlan, options, executionContext);
@@ -449,6 +429,22 @@ export async function executePlanV1(
         errors: finalErrors,
       });
 
+      // Call onComplete callback if provided
+      if (options.statusCallbacks?.onComplete) {
+        try {
+          await options.statusCallbacks.onComplete({
+            status: "failed",
+            completedAt: utcNow(),
+            duration_ms: Date.now() - startTime,
+            success: false,
+            errors: finalErrors,
+          });
+        } catch (error) {
+          console.error("Error in onComplete callback:", error);
+          // Don't fail execution due to callback errors
+        }
+      }
+
       // Flush events before returning
       await options.eventEmitter?.flush?.();
 
@@ -462,16 +458,33 @@ export async function executePlanV1(
 
     const finalState = graphResult.output;
     const success = finalState.errors.length === 0;
+    const duration = Date.now() - startTime;
 
     // Emit PLAN_END event
     executionContext.emit({
       type: "PLAN_END",
       success,
-      totalDuration_ms: Date.now() - startTime,
+      totalDuration_ms: duration,
       nodeResultCount: finalState.results.length,
       errorCount: finalState.errors.length,
       errors: finalState.errors,
     });
+
+    // Call onComplete callback if provided
+    if (options.statusCallbacks?.onComplete) {
+      try {
+        await options.statusCallbacks.onComplete({
+          status: success ? "completed" : "failed",
+          completedAt: utcNow(),
+          duration_ms: duration,
+          success,
+          ...(finalState.errors.length > 0 && { errors: finalState.errors }),
+        });
+      } catch (error) {
+        console.error("Error in onComplete callback:", error);
+        // Don't fail execution due to callback errors
+      }
+    }
 
     // Flush events before returning
     await options.eventEmitter?.flush?.();
@@ -480,21 +493,40 @@ export async function executePlanV1(
       success,
       results: finalState.results,
       errors: finalState.errors,
-      totalDuration_ms: Date.now() - startTime,
+      totalDuration_ms: duration,
     };
   } catch (error: unknown) {
     // Catch any unexpected errors
     executionContext.emitError(error, "unexpected_error");
 
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const duration = Date.now() - startTime;
+
     // Emit PLAN_END event
     executionContext.emit({
       type: "PLAN_END",
       success: false,
-      totalDuration_ms: Date.now() - startTime,
+      totalDuration_ms: duration,
       nodeResultCount: 0,
       errorCount: 1,
-      errors: [error instanceof Error ? error.message : String(error)],
+      errors: [errorMessage],
     });
+
+    // Call onComplete callback if provided
+    if (options.statusCallbacks?.onComplete) {
+      try {
+        await options.statusCallbacks.onComplete({
+          status: "failed",
+          completedAt: utcNow(),
+          duration_ms: duration,
+          success: false,
+          errors: [errorMessage],
+        });
+      } catch (callbackError) {
+        console.error("Error in onComplete callback:", callbackError);
+        // Don't fail execution due to callback errors
+      }
+    }
 
     // Flush events before throwing
     await options.eventEmitter?.flush?.();
@@ -512,9 +544,9 @@ async function executeEndpoint(
   const startTime = Date.now();
 
   // Only JSON response format is currently supported
-  if (endpoint.response_format !== ResponseFormat.JSON) {
+  if (endpoint.response_format !== "JSON") {
     throw new Error(
-      `Unsupported response format: ${ResponseFormat[endpoint.response_format]}. Only JSON is currently supported.`,
+      `Unsupported response format: ${endpoint.response_format}. Only JSON is currently supported.`,
     );
   }
 
@@ -538,7 +570,7 @@ async function executeEndpoint(
     type: "HTTP_REQUEST",
     nodeId,
     attempt,
-    method: httpMethodToString(endpoint.method),
+    method: endpoint.method,
     url,
     headers: resolvedHeaders,
     hasBody: endpoint.body !== undefined,
@@ -546,7 +578,7 @@ async function executeEndpoint(
 
   try {
     const response = await options.httpClient.request({
-      method: httpMethodToString(endpoint.method),
+      method: endpoint.method,
       url,
       headers: resolvedHeaders,
       body: endpoint.body,
@@ -582,7 +614,6 @@ async function executeEndpoint(
   } catch (error: unknown) {
     const duration_ms = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
-
     // Emit failed HTTP_RESPONSE event
     context.emit({
       type: "HTTP_RESPONSE",
@@ -672,11 +703,11 @@ function evaluateAssertion(
   responses: Record<string, NodeResponseData>,
 ): { passed: boolean; message: string } {
   switch (assertion.assertionType) {
-    case ResponseFormat.JSON:
+    case "JSON":
       return evaluateJSONAssertion(assertion, responses);
-    case ResponseFormat.XML:
+    case "XML":
       throw new Error(`XML assertions are not supported yet`);
-    case ResponseFormat.TEXT:
+    case "TEXT":
       throw new Error(`Text assertions are not supported yet`);
   }
 }
@@ -685,7 +716,7 @@ function evaluateAssertion(
  * Evaluate a single assertion
  */
 function evaluateJSONAssertion(
-  assertion: JSONAssertion,
+  assertion: JsonAssertion,
   responses: Record<string, NodeResponseData>,
 ): { passed: boolean; message: string } {
   const { nodeId, accessor, path, predicate } = assertion;
@@ -696,13 +727,7 @@ function evaluateJSONAssertion(
   // Check if predicate is unary or binary
   if (typeof predicate === "string" || typeof predicate === "number") {
     // Unary predicate (enum value)
-    return evaluateUnaryPredicate(
-      value,
-      predicate as UnaryPredicate,
-      nodeId,
-      accessor,
-      pathStr,
-    );
+    return evaluateUnaryPredicate(value, predicate, nodeId, accessor, pathStr);
   } else {
     // Binary predicate (object with operator and expected)
     return evaluateBinaryPredicate(value, predicate, nodeId, accessor, pathStr);
@@ -720,7 +745,7 @@ function evaluateUnaryPredicate(
   pathStr: string,
 ): { passed: boolean; message: string } {
   switch (predicate) {
-    case UnaryPredicate.IS_NULL:
+    case "IS_NULL":
       return {
         passed: value === null,
         message:
@@ -729,7 +754,7 @@ function evaluateUnaryPredicate(
             : `Expected ${nodeId}.${accessor}.${pathStr} to be null, got ${JSON.stringify(value)}`,
       };
 
-    case UnaryPredicate.IS_NOT_NULL:
+    case "IS_NOT_NULL":
       return {
         passed: value !== null && value !== undefined,
         message:
@@ -738,7 +763,7 @@ function evaluateUnaryPredicate(
             : `Expected ${nodeId}.${accessor}.${pathStr} to not be null`,
       };
 
-    case UnaryPredicate.IS_TRUE:
+    case "IS_TRUE":
       return {
         passed: value === true,
         message:
@@ -747,7 +772,7 @@ function evaluateUnaryPredicate(
             : `Expected ${nodeId}.${accessor}.${pathStr} to be true, got ${JSON.stringify(value)}`,
       };
 
-    case UnaryPredicate.IS_FALSE:
+    case "IS_FALSE":
       return {
         passed: value === false,
         message:
@@ -756,7 +781,7 @@ function evaluateUnaryPredicate(
             : `Expected ${nodeId}.${accessor}.${pathStr} to be false, got ${JSON.stringify(value)}`,
       };
 
-    case UnaryPredicate.IS_EMPTY: {
+    case "IS_EMPTY": {
       const isEmpty =
         value === "" ||
         (Array.isArray(value) && value.length === 0) ||
@@ -771,7 +796,7 @@ function evaluateUnaryPredicate(
       };
     }
 
-    case UnaryPredicate.IS_NOT_EMPTY: {
+    case "IS_NOT_EMPTY": {
       const isNotEmpty =
         value !== "" &&
         !(Array.isArray(value) && value.length === 0) &&
@@ -798,7 +823,7 @@ function evaluateUnaryPredicate(
  */
 function evaluateBinaryPredicate(
   value: unknown,
-  predicate: { operator: BinaryPredicateOperator; expected: unknown },
+  predicate: BinaryPredicate,
   nodeId: string,
   accessor: string,
   pathStr: string,
@@ -806,7 +831,7 @@ function evaluateBinaryPredicate(
   const { operator, expected } = predicate;
 
   switch (operator) {
-    case BinaryPredicateOperator.EQUAL: {
+    case "EQUAL": {
       const isEqual = JSON.stringify(value) === JSON.stringify(expected);
       return {
         passed: isEqual,
@@ -816,7 +841,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.NOT_EQUAL: {
+    case "NOT_EQUAL": {
       const isNotEqual = JSON.stringify(value) !== JSON.stringify(expected);
       return {
         passed: isNotEqual,
@@ -826,7 +851,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.GREATER_THAN: {
+    case "GREATER_THAN": {
       const isGT = typeof value === "number" && value > (expected as number);
       return {
         passed: isGT,
@@ -836,7 +861,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.LESS_THAN: {
+    case "LESS_THAN": {
       const isLT = typeof value === "number" && value < (expected as number);
       return {
         passed: isLT,
@@ -846,7 +871,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.GREATER_THAN_OR_EQUAL: {
+    case "GREATER_THAN_OR_EQUAL": {
       const isGTE = typeof value === "number" && value >= (expected as number);
       return {
         passed: isGTE,
@@ -856,7 +881,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.LESS_THAN_OR_EQUAL: {
+    case "LESS_THAN_OR_EQUAL": {
       const isLTE = typeof value === "number" && value <= (expected as number);
       return {
         passed: isLTE,
@@ -866,7 +891,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.CONTAINS: {
+    case "CONTAINS": {
       const contains =
         typeof value === "string" && value.includes(expected as string);
       return {
@@ -877,7 +902,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.NOT_CONTAINS: {
+    case "NOT_CONTAINS": {
       const notContains =
         typeof value === "string" && !value.includes(expected as string);
       return {
@@ -888,7 +913,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.STARTS_WITH: {
+    case "STARTS_WITH": {
       const startsWith =
         typeof value === "string" && value.startsWith(expected as string);
       return {
@@ -899,7 +924,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.NOT_STARTS_WITH: {
+    case "NOT_STARTS_WITH": {
       const notStartsWith =
         typeof value === "string" && !value.startsWith(expected as string);
       return {
@@ -910,7 +935,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.ENDS_WITH: {
+    case "ENDS_WITH": {
       const endsWith =
         typeof value === "string" && value.endsWith(expected as string);
       return {
@@ -921,7 +946,7 @@ function evaluateBinaryPredicate(
       };
     }
 
-    case BinaryPredicateOperator.NOT_ENDS_WITH: {
+    case "NOT_ENDS_WITH": {
       const notEndsWith =
         typeof value === "string" && !value.endsWith(expected as string);
       return {
