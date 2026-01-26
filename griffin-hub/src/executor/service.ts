@@ -1,4 +1,4 @@
-import type { JobQueue, Job } from "../storage/ports.js";
+import type { JobQueue, Job } from "../job-queue/index.js";
 import type { Storage } from "../storage/repositories.js";
 import type { SecretProviderRegistry } from "@griffin-app/griffin-plan-executor";
 import { executePlanV1 } from "@griffin-app/griffin-plan-executor";

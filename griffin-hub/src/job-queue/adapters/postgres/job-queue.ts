@@ -1,8 +1,7 @@
 import { JobQueue, Job, JobStatus, EnqueueOptions } from "../../ports.js";
 import { sql, and, eq, desc } from "drizzle-orm";
 import { DrizzleDatabase } from "../../../plugins/storage.js";
-import { jobsTable } from "./schema.js";
-import { fromUTC } from "../../../utils/dates.js";
+import { jobsTable } from "../../../storage/adapters/postgres/schema.js";
 
 /**
  * PostgreSQL implementation of JobQueue.
@@ -104,9 +103,6 @@ export class PostgresJobQueue<T = any> implements JobQueue<T> {
 
     const shouldRetry = retry && job.attempts < job.maxAttempts;
     const newStatus = shouldRetry ? JobStatus.RETRYING : JobStatus.FAILED;
-
-    //let query: string;
-    //let params: unknown[];
 
     if (shouldRetry) {
       // Calculate exponential backoff: 2^attempts seconds

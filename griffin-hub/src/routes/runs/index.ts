@@ -25,12 +25,6 @@ const ListRunsQuerySchema = Type.Object({
   ...PaginationRequestOpts,
 });
 
-//const ListRunsResponseSchema = Type.Object({
-//  runs: Type.Array(JobRunSchema),
-//  total: Type.Number(),
-//  limit: Type.Number(),
-//  offset: Type.Number(),
-//});
 
 const GetRunResponseSchema = JobRunSchema;
 
@@ -42,7 +36,6 @@ const TriggerExecutionBodySchema = Type.Object({
   environment: Type.String({ minLength: 1 }),
 });
 
-// const TriggerExecutionResponseSchema = SuccessResponseSchema(JobRunSchema);
 
 export default function (fastify: FastifyTypeBox) {
   /**

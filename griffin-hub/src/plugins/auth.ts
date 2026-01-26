@@ -1,7 +1,6 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
 import bearerAuth from "@fastify/bearer-auth";
-import { jwtVerify, createRemoteJWKSet, decodeJwt } from "jose";
 import type { AuthContext } from "../schemas/auth.js";
 import path from "node:path";
 
