@@ -1,8 +1,7 @@
 import { JobQueue, Job, JobStatus, EnqueueOptions } from "../../ports.js";
 import { sql, and, eq, desc } from "drizzle-orm";
 import { DrizzleDatabase } from "../../../plugins/storage.js";
-import { jobsTable } from "./schema.js";
-import { fromUTC } from "../../../utils/dates.js";
+import { jobsTable } from "../../../storage/adapters/postgres/schema.js";
 
 /**
  * PostgreSQL implementation of JobQueue.
@@ -20,8 +19,6 @@ export class PostgresJobQueue<T = any> implements JobQueue<T> {
 
   async enqueue(data: T, options: EnqueueOptions): Promise<string> {
     const now = new Date();
-    const scheduledFor = options.runAt || now;
-    const priority = options.priority ?? 0;
     const maxAttempts = options.maxAttempts ?? 3;
     const result = await this.db
       .insert(jobsTable)
@@ -32,8 +29,7 @@ export class PostgresJobQueue<T = any> implements JobQueue<T> {
         status: JobStatus.PENDING,
         attempts: 0,
         maxAttempts: maxAttempts,
-        priority: priority,
-        scheduledFor: scheduledFor,
+        scheduledFor: now,
         createdAt: now,
         updatedAt: now,
       })
@@ -105,9 +101,6 @@ export class PostgresJobQueue<T = any> implements JobQueue<T> {
     const shouldRetry = retry && job.attempts < job.maxAttempts;
     const newStatus = shouldRetry ? JobStatus.RETRYING : JobStatus.FAILED;
 
-    //let query: string;
-    //let params: unknown[];
-
     if (shouldRetry) {
       // Calculate exponential backoff: 2^attempts seconds
       const backoffSeconds = Math.pow(2, job.attempts);
@@ -137,17 +130,7 @@ export class PostgresJobQueue<T = any> implements JobQueue<T> {
     }
   }
 
-  async getStatus(jobId: string): Promise<JobStatus | null> {
-    const result = await this.db.query.jobsTable.findFirst({
-      where: eq(jobsTable.id, jobId),
-    });
-    if (!result) {
-      return null;
-    }
-    return result.status;
-  }
-
-  async getJob(jobId: string): Promise<Job<T> | null> {
+  private async getJob(jobId: string): Promise<Job<T> | null> {
     const result = await this.db.query.jobsTable.findFirst({
       where: eq(jobsTable.id, jobId),
     });

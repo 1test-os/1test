@@ -11,7 +11,7 @@ Griffin is an open-source API testing platform for creating TypeScript-based API
 | Package | Purpose |
 |---------|---------|
 | **griffin-ts** | TypeScript DSL for defining API tests |
-| **griffin-plan-executor** | Execution engine for JSON test plans |
+| **griffin-executor** | Execution engine for JSON test plans |
 | **griffin-cli** | Command-line tool for test management |
 | **griffin-hub** | Control plane & REST API service |
 | **griffin-agent** | Distributed test execution worker |
@@ -27,18 +27,18 @@ The projects must be built in dependency order:
 cd griffin-ts && npm install && npm run build
 
 # Build plan executor (depends on griffin-ts)
-cd ../griffin-plan-executor && npm install && npm run build
+cd ../griffin-executor && npm install && npm run build
 
 # Build hub SDK (auto-generated OpenAPI client)
 cd ../griffin-hub-sdk && npm install && npm run build
 
-# Build CLI (depends on griffin-ts, plan-executor, hub-sdk)
+# Build CLI (depends on griffin-ts, executor, hub-sdk)
 cd ../griffin-cli && npm install && npm run build
 
-# Build hub (depends on griffin-ts, plan-executor, cli)
+# Build hub (depends on griffin-ts, executor, cli)
 cd ../griffin-hub && npm install && npm run build
 
-# Build agent (depends on griffin-ts, plan-executor, hub-sdk)
+# Build agent (depends on griffin-ts, executor, hub-sdk)
 cd ../griffin-agent && npm install && npm run build
 ```
 
@@ -46,8 +46,8 @@ cd ../griffin-agent && npm install && npm run build
 
 ```bash
 # Plan executor tests
-cd griffin-plan-executor && npm test           # single run
-cd griffin-plan-executor && npm run test:watch # watch mode
+cd griffin-executor && npm test           # single run
+cd griffin-executor && npm run test:watch # watch mode
 
 # CLI tests
 cd griffin-cli && npm test
@@ -137,7 +137,7 @@ Griffin supports two deployment architectures:
 ### Execution Flow
 1. **griffin-ts** (DSL) - Builder pattern creates test definitions in TypeScript
 2. Test files serialize to JSON test plans
-3. **griffin-plan-executor** - Executes JSON plans using graph-based execution (ts-edge)
+3. **griffin-executor** - Executes JSON plans using graph-based execution (ts-edge)
 4. **griffin-hub** - Schedules jobs and enqueues them
 5. **Executor** (built-in or agent) - Polls queue, executes plans, reports results
 
@@ -227,7 +227,7 @@ builder.endpoint("call", {
 
 **Key files:**
 - `griffin-ts/src/secrets.ts` - DSL secret() function
-- `griffin-plan-executor/src/secrets/` - Provider implementations and resolution
+- `griffin-executor/src/secrets/` - Provider implementations and resolution
 - `griffin-hub/src/plugins/secrets.ts` - Hub integration
 
 ## Key Entry Points
@@ -238,8 +238,8 @@ builder.endpoint("call", {
 | `griffin-ts/src/builder.ts` | Graph-based TestBuilder |
 | `griffin-ts/src/sequential-builder.ts` | Sequential TestBuilder |
 | `griffin-ts/src/secrets.ts` | secret() function for DSL |
-| `griffin-plan-executor/src/executor.ts` | Plan execution engine |
-| `griffin-plan-executor/src/secrets/` | Secret providers and resolution |
+| `griffin-executor/src/executor.ts` | Plan execution engine |
+| `griffin-executor/src/secrets/` | Secret providers and resolution |
 | `griffin-hub/src/app.ts` | Fastify app setup |
 | `griffin-hub/src/server.ts` | Hub-only entry point (control plane) |
 | `griffin-hub/src/server-standalone.ts` | Standalone entry point (hub + executor) |
@@ -249,3 +249,17 @@ builder.endpoint("call", {
 | `griffin-hub/src/plugins/secrets.ts` | Secret registry initialization |
 | `griffin-agent/src/index.ts` | Agent entry point |
 | `griffin-agent/src/config.ts` | Agent configuration schema |
+
+## Updating PR Descriptions
+
+The `gh pr edit` command may fail with GraphQL errors. Use the REST API instead:
+
+```bash
+# Write body to temp file first
+cat > /tmp/pr-body.md << 'PREOF'
+Your PR description here...
+PREOF
+
+# Update via REST API
+gh api repos/OWNER/REPO/pulls/PR_NUMBER -X PATCH -f body="$(cat /tmp/pr-body.md)"
+```

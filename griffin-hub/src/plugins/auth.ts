@@ -1,8 +1,8 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
 import bearerAuth from "@fastify/bearer-auth";
-import { jwtVerify, createRemoteJWKSet, decodeJwt } from "jose";
-import type { AuthContext } from "../schemas/auth.js";
+import { decodeJwt, jwtVerify } from "jose";
+import { createRemoteJWKSet } from "jose";
 import path from "node:path";
 
 export async function validateToken(token: string): Promise<any> {

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Storage, JobQueueBackend } from "../storage/index.js";
+import type { Storage } from "../storage/index.js";
+import type { JobQueueBackend } from "../job-queue/index.js";
 import type { PlanV1 } from "../schemas/plans.js";
 import { JobRunStatus, TriggerType, type JobRun } from "../schemas/job-run.js";
 import { utcNow } from "../utils/dates.js";
@@ -158,8 +159,6 @@ export class SchedulerService {
       },
       {
         location,
-        runAt: new Date(now),
-        priority: 0,
         maxAttempts: 3,
       },
     );

@@ -1,5 +1,5 @@
 {
-  "name": "@griffin-app/griffin-plan-executor",
+  "name": "@griffin-app/griffin-executor",
   "version": "0.1.10",
   "description": "Executor for griffin JSON test plans",
   "type": "module",

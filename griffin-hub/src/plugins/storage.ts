@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync } from "fastify";
-import { Storage, JobQueueBackend } from "../storage/index.js";
-import { createStorage, createJobQueueBackend } from "../storage/factory.js";
+import { Storage } from "../storage/index.js";
+import { createStorage } from "../storage/factory.js";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../storage/adapters/postgres/schema.js";
 
@@ -9,50 +9,42 @@ import * as schema from "../storage/adapters/postgres/schema.js";
 declare module "fastify" {
   interface FastifyInstance {
     storage: Storage;
-    jobQueue: JobQueueBackend;
   }
 }
 
 export type DrizzleDatabase = NodePgDatabase<typeof schema>;
 
 /**
- * Fastify plugin that initializes and registers the storage backends.
+ * Fastify plugin that initializes and registers the storage backend.
  * Configuration is loaded from fastify.config (provided by the config plugin).
  */
 const storagePlugin: FastifyPluginAsync = async (fastify) => {
-  const { repository: repoConfig, jobQueue: queueConfig } = fastify.config;
+  const { repository: repoConfig } = fastify.config;
 
   fastify.log.info(
     {
       repositoryBackend: repoConfig.backend,
-      jobQueueBackend: queueConfig.backend,
     },
-    "Initializing storage backends",
+    "Initializing storage backend",
   );
 
-  // Create backends
+  // Create storage backend
   const storage = createStorage({
     backend: repoConfig.backend,
     connectionString: repoConfig.connectionString,
   });
-  const jobQueue = createJobQueueBackend({
-    backend: queueConfig.backend,
-    connectionString: queueConfig.connectionString,
-  });
 
-  // Connect to backends
+  // Connect to backend
   await storage.connect();
-  await jobQueue.connect();
 
   // Register cleanup on shutdown
   fastify.addHook("onClose", async () => {
-    fastify.log.info("Disconnecting storage backends");
-    await Promise.all([storage.disconnect(), jobQueue.disconnect()]);
+    fastify.log.info("Disconnecting storage backend");
+    await storage.disconnect();
   });
 
-  // Decorate Fastify instance with backends
+  // Decorate Fastify instance with storage
   fastify.decorate("storage", storage);
-  fastify.decorate("jobQueue", jobQueue);
 };
 
 export default fp(storagePlugin, {

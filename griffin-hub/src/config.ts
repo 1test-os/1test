@@ -13,10 +13,21 @@ export const ConfigSchema = Type.Object({
   }),
 
   // Job queue configuration
-  jobQueue: Type.Object({
-    backend: Type.Union([Type.Literal("postgres")]),
-    connectionString: Type.Optional(Type.String()),
-  }),
+  jobQueue: Type.Union([
+    Type.Object({
+      backend: Type.Literal("postgres"),
+      connectionString: Type.String(),
+    }),
+    Type.Object({
+      backend: Type.Literal("sqs"),
+      queueInfo: Type.Array(
+        Type.Object({
+          region: Type.String(),
+          url: Type.String(),
+        }),
+      ),
+    }),
+  ]),
 
   // Scheduler configuration
   scheduler: Type.Object({
@@ -141,8 +152,54 @@ export function loadConfigFromEnv(): Config {
     throw new Error("DATABASE_URL is required");
   }
 
-  const jobQueueBackend = "postgres"; //process.env.JOBQUEUE_BACKEND as "postgres";
-  const jobQueueConnectionString = process.env.DATABASE_URL;
+  // Parse job queue configuration
+  const jobQueueBackend = (process.env.JOBQUEUE_BACKEND || "postgres") as
+    | "postgres"
+    | "sqs";
+
+  let jobQueueConfig: Config["jobQueue"];
+
+  if (jobQueueBackend === "postgres") {
+    const jobQueueConnectionString =
+      process.env.JOBQUEUE_CONNECTION_STRING || process.env.DATABASE_URL;
+    if (!jobQueueConnectionString) {
+      throw new Error(
+        "JOBQUEUE_CONNECTION_STRING or DATABASE_URL is required for postgres job queue backend",
+      );
+    }
+    jobQueueConfig = {
+      backend: "postgres",
+      connectionString: jobQueueConnectionString,
+    };
+  } else if (jobQueueBackend === "sqs") {
+    // Parse SQS queue configuration from environment
+    // Format: JOBQUEUE_SQS_QUEUES=region1:url1,region2:url2
+    const sqsQueuesEnv = process.env.JOBQUEUE_SQS_QUEUES;
+    if (!sqsQueuesEnv) {
+      throw new Error(
+        "JOBQUEUE_SQS_QUEUES is required for sqs job queue backend. Format: region1:url1,region2:url2",
+      );
+    }
+
+    const queueInfo = sqsQueuesEnv.split(",").map((entry) => {
+      const [region, url] = entry.split(":");
+      if (!region || !url) {
+        throw new Error(
+          `Invalid SQS queue configuration: ${entry}. Expected format: region:url`,
+        );
+      }
+      return { region: region.trim(), url: url.trim() };
+    });
+
+    jobQueueConfig = {
+      backend: "sqs",
+      queueInfo,
+    };
+  } else {
+    throw new Error(
+      `Invalid JOBQUEUE_BACKEND: ${jobQueueBackend}. Must be one of: postgres, sqs`,
+    );
+  }
 
   // Parse secret providers configuration
   const secretProviders = process.env.SECRET_PROVIDERS
@@ -223,10 +280,7 @@ export function loadConfigFromEnv(): Config {
       backend: repositoryBackend,
       connectionString: repositoryConnectionString,
     },
-    jobQueue: {
-      backend: jobQueueBackend,
-      connectionString: jobQueueConnectionString,
-    },
+    jobQueue: jobQueueConfig,
     scheduler: {
       enabled: parseBoolean(process.env.SCHEDULER_ENABLED, true),
       tickInterval: parseInteger(process.env.SCHEDULER_TICK_INTERVAL, 30000),
