@@ -249,3 +249,17 @@ builder.endpoint("call", {
 | `griffin-hub/src/plugins/secrets.ts` | Secret registry initialization |
 | `griffin-agent/src/index.ts` | Agent entry point |
 | `griffin-agent/src/config.ts` | Agent configuration schema |
+
+## Updating PR Descriptions
+
+The `gh pr edit` command may fail with GraphQL errors. Use the REST API instead:
+
+```bash
+# Write body to temp file first
+cat > /tmp/pr-body.md << 'PREOF'
+Your PR description here...
+PREOF
+
+# Update via REST API
+gh api repos/OWNER/REPO/pulls/PR_NUMBER -X PATCH -f body="$(cat /tmp/pr-body.md)"
+```
