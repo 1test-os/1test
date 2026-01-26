@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ['*']
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      
+      # Build projects in dependency order
+      - name: Build griffin-ts
+        run: |
+          cd griffin-ts
+          npm ci
+          npm run build
+      
+      - name: Build griffin-executor
+        run: |
+          cd griffin-executor
+          npm ci
+          npm run build
+      
+      - name: Build griffin-hub-sdk
+        run: |
+          cd griffin-hub-sdk
+          npm ci
+          npm run build
+      
+      - name: Build griffin-cli
+        run: |
+          cd griffin-cli
+          npm ci
+          npm run build
+      
+      - name: Build griffin-hub
+        run: |
+          cd griffin-hub
+          npm ci
+          npm run build
+      
+      - name: Build griffin-agent
+        run: |
+          cd griffin-agent
+          npm ci
+          npm run build
+      
+      - name: Build sample-apis
+        run: |
+          cd sample-apis
+          npm ci
+          npm run build
+      
+      # Run tests
+      - name: Test griffin-executor
+        run: |
+          cd griffin-executor
+          npm test
+      
+      - name: Test griffin-cli
+        run: |
+          cd griffin-cli
+          npm test
+      
+      - name: Test griffin-hub
+        run: |
+          cd griffin-hub
+          npm test
