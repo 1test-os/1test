@@ -1,18 +1,15 @@
-import { JobQueueBackend, JobQueue } from "../../ports.js";
 import { Storage } from "../../repositories.js";
 import {
   PostgresPlansRepository,
   PostgresRunsRepository,
   PostgresAgentsRepository,
 } from "./repositories.js";
-import { PostgresJobQueue } from "./job-queue.js";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 import * as schema from "./schema.js";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { DrizzleDatabase } from "../../../plugins/storage.js";
 
 /**
  * PostgreSQL Storage implementation using Drizzle ORM.
@@ -99,46 +96,5 @@ class PostgresTransactionStorage implements Storage {
     // Nested transactions not supported in this implementation
     // Just execute the function with the current transaction context
     return await fn(this);
-  }
-}
-
-/**
- * PostgreSQL job queue backend.
- * Provides high-performance, durable job queues using Postgres.
- *
- *
- * Connection options to consider:
- * - Connection string from environment variable
- * - Pool configuration (max connections, idle timeout, etc.)
- * - SSL settings for production
- * - Statement timeout for safety
- */
-export class PostgresJobQueueBackend implements JobQueueBackend {
-  private db: DrizzleDatabase | null = null;
-  private queues: Map<string, PostgresJobQueue<any>> = new Map();
-
-  constructor(private connectionString: string) {}
-
-  queue<T = any>(name: string): JobQueue<T> {
-    if (!this.queues.has(name)) {
-      this.queues.set(name, new PostgresJobQueue<T>(this.db!, name));
-    }
-    return this.queues.get(name)!;
-  }
-
-  async connect(): Promise<void> {
-    // Create pool with UTC timezone setting
-    const pool = new Pool({
-      connectionString: this.connectionString,
-      // Set timezone to UTC for all connections
-      options: "-c timezone=UTC",
-    });
-    this.db = drizzle(pool, { schema });
-  }
-
-  async disconnect(): Promise<void> {
-    if (this.db) {
-      this.db = null;
-    }
   }
 }

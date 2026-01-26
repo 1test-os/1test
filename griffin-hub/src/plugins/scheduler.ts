@@ -53,5 +53,5 @@ const schedulerPlugin: FastifyPluginAsync = async (fastify) => {
 
 export default fp(schedulerPlugin, {
   name: "scheduler",
-  dependencies: ["config", "storage", "agent-registry"],
+  dependencies: ["config", "storage", "job-queue", "agent-registry"],
 });

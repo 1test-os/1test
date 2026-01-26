@@ -16,7 +16,7 @@ The TypeScript DSL library for defining API tests. Tests are written in TypeScri
 - Frequency-based test scheduling
 - Outputs JSON test plans for execution
 
-### 2. [griffin-plan-executor](./griffin-plan-executor/)
+### 2. [griffin-executor](./griffin-executor/)
 The core execution library that takes JSON test plans and executes them using graph-based execution (powered by ts-edge).
 
 **Key Features:**
@@ -85,7 +85,7 @@ A simple JSON API server for testing griffin functionality during development.
    cd griffin-ts && npm install && npm run build
    
    # Build plan executor (depends on griffin-ts)
-   cd ../griffin-plan-executor && npm install && npm run build
+   cd ../griffin-executor && npm install && npm run build
    
    # Build CLI (depends on plan executor)
    cd ../griffin-cli && npm install && npm run build
@@ -155,7 +155,7 @@ import { secret } from "griffin-ts";
 - `aws` - AWS Secrets Manager (requires `@aws-sdk/client-secrets-manager`)
 - `vault` - HashiCorp Vault
 
-See [griffin-plan-executor README](./griffin-plan-executor/README.md) for detailed secrets documentation.
+See [griffin-executor README](./griffin-executor/README.md) for detailed secrets documentation.
 
 ## Current Status
 
@@ -231,7 +231,7 @@ For simple deployments, griffin-runner will combine hub and agent in a single pr
 
 ```bash
 # Plan executor tests
-cd griffin-plan-executor
+cd griffin-executor
 npm test              # single run
 npm run test:watch    # watch mode
 
@@ -245,7 +245,7 @@ npm test
 - [SETUP.md](./SETUP.md) - Detailed setup instructions
 - [ARCHITECTURE_HUB_AGENT.md](./ARCHITECTURE_HUB_AGENT.md) - Hub/Agent architecture documentation
 - [griffin-ts README](./griffin-ts/README.md) - DSL documentation and examples
-- [griffin-plan-executor README](./griffin-plan-executor/README.md) - Executor and secrets documentation
+- [griffin-executor README](./griffin-executor/README.md) - Executor and secrets documentation
 - [griffin-cli README](./griffin-cli/README.md) - CLI commands and usage
 
 ## License

@@ -1,31 +1,18 @@
-import { JobQueueBackend, MigrationRunner } from "./ports.js";
+import { MigrationRunner } from "./ports.js";
 import { Storage } from "./repositories.js";
-import {
-  PostgresStorage,
-  PostgresJobQueueBackend,
-} from "./adapters/postgres/index.js";
+import { PostgresStorage } from "./adapters/postgres/index.js";
 
 // =============================================================================
 // Backend types and configs
 // =============================================================================
 
 export type RepositoryBackendType = "memory" | "postgres";
-export type JobQueueBackendType = "memory" | "postgres";
 
 export interface RepositoryConfig {
   backend: RepositoryBackendType;
 
   /**
    * For SQLite: file path or ':memory:'
-   * For Postgres: connection string
-   */
-  connectionString?: string;
-}
-
-export interface JobQueueConfig {
-  backend: JobQueueBackendType;
-
-  /**
    * For Postgres: connection string
    */
   connectionString?: string;
@@ -48,22 +35,6 @@ export function createStorage(config: RepositoryConfig): Storage {
 
     default:
       throw new Error(`Unknown repository backend: ${config.backend}`);
-  }
-}
-
-/**
- * Create a job queue backend based on configuration.
- */
-export function createJobQueueBackend(config: JobQueueConfig): JobQueueBackend {
-  switch (config.backend) {
-    case "postgres":
-      if (!config.connectionString) {
-        throw new Error("Connection string required for Postgres backend");
-      }
-      return new PostgresJobQueueBackend(config.connectionString);
-
-    default:
-      throw new Error(`Unknown job queue backend: ${config.backend}`);
   }
 }
 
@@ -108,32 +79,6 @@ export function loadRepositoryConfig(): RepositoryConfig {
     if (!connectionString) {
       throw new Error(
         "REPOSITORY_CONNECTION_STRING or POSTGRESQL_URL environment variable required for Postgres backend",
-      );
-    }
-  }
-
-  return { backend, connectionString };
-}
-
-/**
- * Load job queue configuration from environment variables.
- *
- * Environment variables:
- * - JOBQUEUE_BACKEND:  'postgres' (default: 'memory')
- * - JOBQUEUE_CONNECTION_STRING: connection string for the backend
- * - POSTGRESQL_URL: (alias for JOBQUEUE_CONNECTION_STRING when using Postgres)
- */
-export function loadJobQueueConfig(): JobQueueConfig {
-  const backend = process.env.JOBQUEUE_BACKEND as JobQueueBackendType;
-
-  let connectionString: string | undefined;
-
-  if (backend === "postgres") {
-    connectionString =
-      process.env.JOBQUEUE_CONNECTION_STRING || process.env.POSTGRESQL_URL;
-    if (!connectionString) {
-      throw new Error(
-        "JOBQUEUE_CONNECTION_STRING or POSTGRESQL_URL environment variable required for Postgres backend",
       );
     }
   }

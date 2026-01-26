@@ -21,7 +21,7 @@ npm install
 npm run build
 
 # Install plan executor dependencies
-cd ../griffin-plan-executor
+cd ../griffin-executor
 npm install
 npm run build
 
@@ -97,11 +97,11 @@ Or the script will automatically try to use `npx tsx` as a fallback.
 
 ### "Test system not built" error
 
-Make sure you've built both `griffin-ts` and `griffin-plan-executor`:
+Make sure you've built both `griffin-ts` and `griffin-executor`:
 
 ```bash
 cd griffin-ts && npm install && npm run build
-cd ../griffin-plan-executor && npm install && npm run build
+cd ../griffin-executor && npm install && npm run build
 ```
 
 ### "Plan executor not found" error
@@ -121,7 +121,7 @@ griffin/
 ├── griffin-cli/          # TypeScript CLI tool
 ├── griffin-runner/       # TypeScript orchestration service
 ├── griffin-ts/           # TypeScript DSL library
-├── griffin-plan-executor/# TypeScript plan executor
+├── griffin-executor/# TypeScript plan executor
 └── __griffin__/          # Test files directory
     └── example-check.ts
 ```

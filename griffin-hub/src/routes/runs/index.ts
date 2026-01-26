@@ -25,13 +25,6 @@ const ListRunsQuerySchema = Type.Object({
   ...PaginationRequestOpts,
 });
 
-//const ListRunsResponseSchema = Type.Object({
-//  runs: Type.Array(JobRunSchema),
-//  total: Type.Number(),
-//  limit: Type.Number(),
-//  offset: Type.Number(),
-//});
-
 const GetRunResponseSchema = JobRunSchema;
 
 const TriggerExecutionParamsSchema = Type.Object({
@@ -41,8 +34,6 @@ const TriggerExecutionParamsSchema = Type.Object({
 const TriggerExecutionBodySchema = Type.Object({
   environment: Type.String({ minLength: 1 }),
 });
-
-// const TriggerExecutionResponseSchema = SuccessResponseSchema(JobRunSchema);
 
 export default function (fastify: FastifyTypeBox) {
   /**
@@ -233,8 +224,6 @@ export default function (fastify: FastifyTypeBox) {
         },
         {
           location,
-          runAt: new Date(now),
-          priority: 10, // Higher priority for manual executions
           maxAttempts: 3,
         },
       );
