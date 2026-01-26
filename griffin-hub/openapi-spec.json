@@ -6,7 +6,13 @@
     "version": "1.0.0"
   },
   "components": {
-    "securitySchemes": {},
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "PlanV1": {
         "type": "object",
@@ -4279,6 +4285,11 @@
     {
       "url": "http://localhost:3000",
       "description": "Local development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
     }
   ],
   "tags": [

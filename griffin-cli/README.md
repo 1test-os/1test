@@ -145,7 +145,7 @@ List all available environments.
 griffin env list
 ```
 
-Shows all configured environments with an asterisk (*) marking the default environment.
+Shows all configured environments with an asterisk (\*) marking the default environment.
 
 ### Local Commands
 
@@ -166,12 +166,12 @@ Variables are loaded from `variables.yaml` for the specified environment.
 
 #### `griffin hub connect`
 
-Configure hub connection settings.
+Configure hub connection settings. When a token is provided, it is stored in the user-level credentials file (`~/.griffin/credentials.json`) for secure, cross-project authentication.
 
 **Options:**
 
 - `--url <url>` - Hub URL (required)
-- `--token <token>` - API authentication token
+- `--token <token>` - API authentication token (optional)
 
 **Example:**
 
@@ -179,9 +179,36 @@ Configure hub connection settings.
 griffin hub connect --url https://hub.example.com --token abc123
 ```
 
+#### `griffin hub login`
+
+Authenticate with the hub using device authorization flow. The received token is stored in the user-level credentials file (`~/.griffin/credentials.json`) for secure access across all projects.
+
+**Example:**
+
+```bash
+griffin hub login
+```
+
+After running this command, you'll be provided with a URL to complete authentication in your browser. Once authenticated, the token will be automatically saved.
+
+#### `griffin hub logout`
+
+Remove stored credentials for the currently configured hub or all hubs.
+
+**Options:**
+
+- `--all` - Remove credentials for all hubs
+
+**Example:**
+
+```bash
+griffin hub logout
+griffin hub logout --all
+```
+
 #### `griffin hub status`
 
-Show hub connection status.
+Show hub connection status, including whether credentials are configured.
 
 **Example:**
 
@@ -264,7 +291,6 @@ griffin hub run staging --plan health-check --wait
 griffin hub run production --plan api-check --force
 ```
 
-
 ## Configuration
 
 ### Environment Variables
@@ -273,7 +299,7 @@ griffin hub run production --plan api-check --force
 
 ### State File
 
-Griffin stores configuration in `.griffin/state.json`:
+Griffin stores project configuration in `.griffin/state.json`:
 
 ```json
 {
@@ -283,9 +309,9 @@ Griffin stores configuration in `.griffin/state.json`:
     "local": {}
   },
   "defaultEnvironment": "local",
-  "runner": {
+  "hub": {
     "baseUrl": "https://hub.example.com",
-    "apiToken": "..."
+    "clientId": "..."
   },
   "discovery": {
     "pattern": "**/__griffin__/*.{ts,js}",
@@ -294,7 +320,27 @@ Griffin stores configuration in `.griffin/state.json`:
 }
 ```
 
-**Important:** Add `.griffin/` to `.gitignore` as it contains local state and potentially sensitive tokens.
+**Important:** Add `.griffin/` to `.gitignore` as it contains local project state.
+
+### Credentials File
+
+Griffin stores user-level authentication credentials in `~/.griffin/credentials.json`:
+
+```json
+{
+  "version": 1,
+  "hubs": {
+    "https://hub.example.com": {
+      "token": "...",
+      "updatedAt": "2024-01-24T12:00:00.000Z"
+    }
+  }
+}
+```
+
+This file is automatically created and managed by the CLI when you use `griffin hub login` or `griffin hub connect --token <token>`. Credentials are stored per-hub URL and are available across all projects on your system.
+
+**Security:** The credentials file is created with restricted permissions (0600) to ensure only the owner can read/write.
 
 ## Environments and Variables
 
