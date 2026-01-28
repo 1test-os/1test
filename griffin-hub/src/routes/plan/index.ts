@@ -1,8 +1,6 @@
 import { Type } from "typebox";
 import { FastifyTypeBox } from "../../types.js";
-import {
-  PlanV1Schema,
-} from "../../schemas/plans.js";
+import { PlanV1Schema } from "../../schemas/plans.js";
 import {
   Ref,
   ErrorResponseOpts,
@@ -12,8 +10,14 @@ import {
 } from "../../schemas/shared.js";
 import { eq, and } from "drizzle-orm";
 import { plansTable } from "../../storage/adapters/postgres/schema.js";
-import { AssertionSchema, BinaryPredicateOperatorSchema, BinaryPredicateSchema, UnaryPredicateSchema } from "@griffin-app/griffin-ts/schema";
+import {
+  AssertionSchema,
+  BinaryPredicateOperatorSchema,
+  BinaryPredicateSchema,
+  UnaryPredicateSchema,
+} from "@griffin-app/griffin-ts/schema";
 import { UnaryPredicateOperatorSchema } from "../../../../griffin-ts/dist/schema.js";
+import { migrateToLatest, CURRENT_PLAN_VERSION } from "@griffin-app/griffin-ts";
 
 export const CreatePlanEndpoint = {
   tags: ["plan"],
@@ -29,6 +33,7 @@ export const ListPlansEndpoint = {
   querystring: Type.Object({
     projectId: Type.Optional(Type.String()),
     environment: Type.Optional(Type.String()),
+    version: Type.Optional(Type.Union([Type.Literal("latest"), Type.String()])),
     ...PaginationRequestOpts,
   }),
   response: {
@@ -66,6 +71,7 @@ export const GetPlanByNameEndpoint = {
     projectId: Type.String(),
     environment: Type.String(),
     name: Type.String(),
+    version: Type.Optional(Type.Union([Type.Literal("latest"), Type.String()])),
   }),
   response: {
     200: SuccessResponseSchema(Ref(PlanV1Schema)),
@@ -119,7 +125,6 @@ export default function (fastify: FastifyTypeBox) {
         data: {
           ...savedPlan,
           locations: savedPlan.locations || [],
-          version: "1.0",
         },
       });
     },
@@ -133,7 +138,13 @@ export default function (fastify: FastifyTypeBox) {
       },
     },
     async (request, reply) => {
-      const { projectId, environment, limit = 50, offset = 0 } = request.query;
+      const {
+        projectId,
+        environment,
+        limit = 50,
+        offset = 0,
+        version,
+      } = request.query;
 
       // Build where clause with optional filters
       let whereClause;
@@ -154,11 +165,22 @@ export default function (fastify: FastifyTypeBox) {
         offset,
       });
       const total = await fastify.storage.plans.count(whereClause);
+
+      // Migrate plans to latest if requested
+      const processedPlans =
+        version === "latest"
+          ? plans.map((plan) => {
+              if (plan.version === CURRENT_PLAN_VERSION) {
+                return plan;
+              }
+              return migrateToLatest(plan as any) as typeof plan;
+            })
+          : plans;
+
       return reply.send({
-        data: plans.map((plan) => ({
+        data: processedPlans.map((plan) => ({
           ...plan,
           locations: plan.locations || [],
-          version: "1.0",
         })),
         total,
         limit,
@@ -178,6 +200,9 @@ export default function (fastify: FastifyTypeBox) {
     async (request, reply) => {
       const { id } = request.params;
       const planData = request.body;
+
+      // TODO: Retrieve organization from token once auth is fully implemented
+      const defaultOrganization = "default";
 
       // Verify plan exists
       const existing = await fastify.storage.plans.findById(id);
@@ -204,14 +229,13 @@ export default function (fastify: FastifyTypeBox) {
       // Update the plan
       const updated = await fastify.storage.plans.update(id, {
         ...planData,
-        organization: existing.organization,
+        organization: defaultOrganization,
       });
 
       return reply.send({
         data: {
           ...updated,
           locations: updated.locations || [],
-          version: "1.0",
         },
       });
     },
@@ -247,7 +271,7 @@ export default function (fastify: FastifyTypeBox) {
       },
     },
     async (request, reply) => {
-      const { projectId, environment, name } = request.query;
+      const { projectId, environment, name, version } = request.query;
 
       const plans = await fastify.storage.plans.findMany({
         where: and(
@@ -262,11 +286,17 @@ export default function (fastify: FastifyTypeBox) {
         return reply.code(404).send({ error: "Plan not found" });
       }
 
+      let plan = plans[0];
+
+      // Migrate to latest if requested
+      if (version === "latest" && plan.version !== CURRENT_PLAN_VERSION) {
+        plan = migrateToLatest(plan as any) as typeof plan;
+      }
+
       return reply.send({
         data: {
-          ...plans[0],
-          locations: plans[0].locations || [],
-          version: "1.0",
+          ...plan,
+          locations: plan.locations || [],
         },
       });
     },
